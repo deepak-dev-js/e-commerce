@@ -17,7 +17,7 @@ const Hero = () => {
           Explore our latest collection and find products that match your style.
         </p>
 
-        <button onClick={() => alert("Shop Now clicked")} className="mt-6 bg-black text-white px-6 py-3 hover:bg-gray-800">
+        <button onClick={() => alert("Hello Pooja")} className="mt-6 bg-black text-white px-6 py-3 hover:bg-gray-800">
           Shop Now
         </button>
       </div>
