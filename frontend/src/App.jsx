@@ -14,7 +14,7 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
+    fetch("https://e-commerce-ls17.onrender.com/api/products")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch products");
