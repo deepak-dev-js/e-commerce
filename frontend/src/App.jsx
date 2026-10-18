@@ -7,6 +7,7 @@
 // export default App;
 
 import { useEffect, useState } from "react";
+import api from "./api/axios";
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -14,16 +15,9 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("https://e-commerce-ls17.onrender.com/api/products")
+    api.get("/api/products")
       .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch products");
-        }
-
-        return response.json();
-      })
-      .then((data) => {
-        setProducts(data.products);
+        setProducts(response.data.products);
       })
       .catch((error) => {
         setError(error.message);
