@@ -80,11 +80,11 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    try {
-      await sendEmail({
-        to: user.email,
-        subject: "Welcome to NovaCart!",
-        text: `Hello ${user.name},
+  try {
+  await sendEmail({
+    to: user.email,
+    subject: "Welcome to NovaCart!",
+    text: `Hello ${user.name},
 
 Welcome to NovaCart!
 
@@ -94,10 +94,10 @@ Thank you for joining us. Happy shopping!
 
 Best regards,
 NovaCart Team`,
-      });
-    } catch (error) {
-      console.error("Welcome email failed:", error.message);
-    }
+  });
+} catch (error) {
+  console.error("Welcome email failed:", error);
+}
 
     // Generate JWT
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
@@ -187,7 +187,7 @@ Best regards,
 NovaCart Team`,
       });
     } catch (error) {
-      console.error("Login notification email failed:", error.message);
+      console.error("Login notification email failed:", error);
     }
 
     // Generate JWT
