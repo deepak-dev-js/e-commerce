@@ -9,13 +9,17 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendEmail = async ({ to, subject, text, html }) => {
-  return transporter.sendMail({
-    from: `"Pickora Store" <${process.env.EMAIL_USER}>`,
+  const info = await transporter.sendMail({
+    from: `"NovaCart" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     text,
     html,
   });
+
+  console.log("Email sent:", info.messageId);
+
+  return info;
 };
 
 export default sendEmail;
