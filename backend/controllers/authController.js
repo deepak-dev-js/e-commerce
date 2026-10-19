@@ -1,7 +1,7 @@
-
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import sendEmail from "../utils/sendEmail.js";
 
 export const getMe = async (req, res) => {
   try {
@@ -80,19 +80,35 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Welcome to NovaCart!",
+        text: `Hello ${user.name},
+
+Welcome to NovaCart!
+
+Your account has been created successfully.
+
+Thank you for joining us. Happy shopping!
+
+Best regards,
+NovaCart Team`,
+      });
+    } catch (error) {
+      console.error("Welcome email failed:", error.message);
+    }
+
     // Generate JWT
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     // Store JWT in an HTTP-only cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite:
-        process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -123,9 +139,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
-
-
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -151,10 +164,7 @@ export const loginUser = async (req, res) => {
     }
 
     // Compare entered password with hashed password
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -163,19 +173,33 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Login Notification - NovaCart",
+        text: `Hello ${user.name},
+
+You have successfully logged in to your NovaCart account.
+
+If this wasn't you, please secure your account.
+
+Best regards,
+NovaCart Team`,
+      });
+    } catch (error) {
+      console.error("Login notification email failed:", error.message);
+    }
+
     // Generate JWT
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     // Store JWT in HTTP-only cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite:
-        process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -199,14 +223,11 @@ export const loginUser = async (req, res) => {
   }
 };
 
-
-
 export const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite:
-      process.env.NODE_ENV === "production" ? "none" : "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/",
   });
 
@@ -215,7 +236,3 @@ export const logoutUser = (req, res) => {
     message: "Logged out successfully",
   });
 };
-
-
-
-
