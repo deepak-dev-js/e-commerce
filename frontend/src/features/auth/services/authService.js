@@ -1,21 +1,19 @@
-const request = async (path, credentials) => {
-  const response = await fetch(path, {
+const API_URL = import.meta.env.VITE_API_URL;
+
+export const registerUser = async (formData) => {
+  const response = await fetch(`${API_URL}/api/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(credentials),
+    body: JSON.stringify(formData),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Authentication request failed (${response.status})`);
+    throw new Error(data.message || "Registration failed");
   }
 
-  return response.json();
+  return data;
 };
-
-export const login = (credentials) => request("/api/auth/login", credentials);
-
-export const register = (userDetails) =>
-  request("/api/auth/register", userDetails);

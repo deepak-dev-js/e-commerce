@@ -209,6 +209,15 @@ const navLinkClass = ({ isActive }) =>
                 Contact
               </NavLink>
             </li>
+             <li>
+              <NavLink
+                to="/register"
+                onClick={() => setIsMenuOpen(false)}
+                className={navLinkClass}
+              >
+                Register
+              </NavLink>
+            </li>
           </ul>
         </aside>
 
