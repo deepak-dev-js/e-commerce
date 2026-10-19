@@ -1,38 +1,29 @@
 import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 import cors from "cors";
+import productRoutes from "./routes/productRoutes.js";
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
-// First API
-app.get("/api/products", (req, res) => {
-  const products = [
-    {
-      id: 1,
-      name: "Laptop",
-      price: 50000
-    },
-    {
-      id: 2,
-      name: "Mobile",
-      price: 20000
-    },
-    {
-      id: 3,
-      name: "Headphones",
-      price: 2000
-    }
-  ];
+app.use("/api/products", productRoutes);
 
-  res.json({
-    success: true,
-    products
+const PORT = process.env.PORT || 5000;
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB Atlas connected successfully");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error.message);
   });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
