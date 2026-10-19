@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { registerUser } from "../services/authService";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -36,7 +37,8 @@ const Register = () => {
         password: "",
       });
     } catch (error) {
-      setMessage(error.message);
+      toast.error(error.message);
+      console.log(error.message)
     } finally {
       setLoading(false);
     }
