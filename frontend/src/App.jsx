@@ -42,6 +42,13 @@ function App() {
       {products.map((product) => (
         <div key={product.id}>
           <h2>{product.name}</h2>
+          <img src={product.image} alt={product.name} width="200" />
+          <p>{product.description}</p>
+          <p>Category: {product.category}</p>
+          <p>Brand: {product.brand}</p>
+          <p>Stock: {product.stock}</p>
+          <p>Rating: {product.rating} ({product.numReviews} reviews)</p>
+          <p>Featured: {product.isFeatured ? "Yes" : "No"}</p>
           <p>Price: ₹{product.price}</p>
         </div>
       ))}
