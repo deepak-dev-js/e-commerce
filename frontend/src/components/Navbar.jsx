@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { assets } from "../assets/assets.js";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import {
   Menu,
   Search,
@@ -9,11 +9,23 @@ import {
   User,
   X
 } from "lucide-react";
+import { logoutUser } from "../features/auth/services/authService.js";
 
 const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const profileRef = useRef(null);
+
+  const navigate = useNavigate();
+
+const handleLogout = async () => {
+  try {
+    await logoutUser();
+    navigate("/login", { replace: true });
+  } catch (error) {
+    console.error("Logout failed:", error.message);
+  }
+};
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -122,7 +134,7 @@ const navLinkClass = ({ isActive }) =>
               <button
                 onClick={() => {
                   setIsProfileOpen(false);
-                  console.log("Logout clicked");
+                  handleLogout();
                 }}
                 className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-gray-100"
               >
