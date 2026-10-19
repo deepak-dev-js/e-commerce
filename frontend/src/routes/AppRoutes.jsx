@@ -4,7 +4,7 @@ import Home from "../pages/Home";
 import ProductDetails from "../pages/ProductDetails";
 import Collection from "../pages/Collection";
 import Cart from "../pages/Cart";
-import Login from "../features/Auth/Pages/Login";
+import Login from "../features/auth/Pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import Register from "../features/auth/pages/Register";
 
