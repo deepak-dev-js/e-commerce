@@ -11,12 +11,27 @@ import {
 } from "lucide-react";
 import { logoutUser } from "../features/auth/services/authService.js";
 import { useCart } from "../context/useCart.js";
+import { fetchCart } from "../services/cartService.js";
 
 const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const profileRef = useRef(null);
-   const { cartCount } = useCart();
+    const { cartItems, setCartItems } = useCart();
+   
+     useEffect(() => {
+       const loadCart = async () => {
+         console.log("api call");
+         try {
+           const data = await fetchCart();
+           setCartItems(data.cart.items);
+         } catch (error) {
+           console.error("Failed to fetch cart:", error);
+         }
+       };
+   
+       loadCart();
+     }, [setCartItems]);
 
   const navigate = useNavigate();
 
@@ -100,7 +115,7 @@ const navLinkClass = ({ isActive }) =>
           <ShoppingCart size={22} strokeWidth={1.5} />
 
           <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
-            {cartCount}
+            {cartItems.length}
           </span>
         </NavLink>
 
