@@ -6,6 +6,7 @@ const ProductCard = ({ product }) => {
   const [added, setAdded] = useState(false);
 
   const handleAddToCart = async () => {
+    setAdded(true);
     try {
       console.log(product)
       await addProductToCart(product._id);
@@ -16,6 +17,7 @@ const ProductCard = ({ product }) => {
   };
 
   const handleRemoveFromCart = async () => {
+    setAdded(false);
     try {
       await removeCartProduct(product._id);
       setAdded(false);
