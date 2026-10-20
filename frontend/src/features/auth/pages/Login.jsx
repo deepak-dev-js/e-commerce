@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
+import { assets } from "../../../assets/assets";
 
 const Login = () => {
   const [formData, setFormData] = useState({
