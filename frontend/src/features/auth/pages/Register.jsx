@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { registerUser } from "../services/authService";
+import { registerUser, googleAuthUser } from "../services/authService";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { GoogleLogin } from "@react-oauth/google";
 import { assets } from "../../../assets/assets";
 
 const Register = () => {
@@ -11,7 +12,6 @@ const Register = () => {
     password: "",
   });
 
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -24,43 +24,89 @@ const Register = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setMessage("");
     setLoading(true);
 
     try {
       const data = await registerUser(formData);
-      setMessage(data.message);
-      navigate("/home");
 
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-      });
+      toast.success(data.message || "Registration successful!");
+      navigate("/home");
     } catch (error) {
-      toast.error(error.message);
-      console.log(error.message)
+      toast.error(error.message || "Registration failed");
+      console.error("Registration error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse.credential) {
+      toast.error("Google authentication failed");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const data = await googleAuthUser(
+        credentialResponse.credential
+      );
+
+      toast.success(data.message || "Google registration successful!");
+      navigate("/home");
+    } catch (error) {
+      toast.error(error.message || "Google registration failed");
+      console.error("Google registration error:", error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-8">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md space-y-5 rounded-2xl bg-white p-8"
+        className="w-full max-w-md space-y-5 rounded-2xl bg-white p-8 shadow-sm"
       >
         <div className="mb-6 text-center">
-           <img className="w-32 h-32 md:w-40 md:h-40 mx-auto" src={assets.logo} alt="Logo" />
+          <img
+            className="mx-auto h-32 w-32 object-contain md:h-40 md:w-40"
+            src={assets.logo}
+            alt="Logo"
+          />
+
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Create Account
           </h1>
+
           <p className="mt-2 text-sm text-gray-500">
             Sign up to start shopping with us
           </p>
         </div>
 
+        {/* Google Registration */}
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+              toast.error("Google registration failed");
+            }}
+            text="continue_with"
+            shape="rectangular"
+            theme="outline"
+            size="large"
+            width="320"
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4">
+          <hr className="flex-1 border-gray-300" />
+          <span className="text-sm text-gray-500">OR</span>
+          <hr className="flex-1 border-gray-300" />
+        </div>
+
+        {/* Full Name */}
         <div>
           <label
             htmlFor="name"
@@ -78,10 +124,12 @@ const Register = () => {
             onChange={handleChange}
             autoComplete="name"
             required
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
           />
         </div>
 
+        {/* Email */}
         <div>
           <label
             htmlFor="email"
@@ -99,10 +147,12 @@ const Register = () => {
             onChange={handleChange}
             autoComplete="email"
             required
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
           />
         </div>
 
+        {/* Password */}
         <div>
           <label
             htmlFor="password"
@@ -121,28 +171,21 @@ const Register = () => {
             autoComplete="new-password"
             minLength={8}
             required
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
           />
         </div>
 
+        {/* Register Button */}
         <button
           type="submit"
           disabled={loading}
           className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Registering..." : "Create Account"}
+          {loading ? "Please wait..." : "Create Account"}
         </button>
-
-        {message && (
-          <p
-            role="status"
-            aria-live="polite"
-            className="rounded-lg bg-gray-50 p-3 text-center text-sm text-gray-700"
-          >
-            {message}
-          </p>
-        )}
       </form>
+
       <p className="mt-4 text-center text-sm text-gray-600">
         Already have an account?{" "}
         <Link
@@ -152,10 +195,9 @@ const Register = () => {
           Login
         </Link>
       </p>
-    </>
-
-
+    </div>
   );
 };
 
 export default Register;
+
