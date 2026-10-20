@@ -1,7 +1,46 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { addProductToCart, fetchCart, removeCartProduct } from "../../../services/cartService";
 
 const ProductCard = ({ product }) => {
+  const [added, setAdded] = useState(false);
+
+  const handleAddToCart = async () => {
+    try {
+      console.log(product)
+      await addProductToCart(product._id);
+      setAdded(true);
+    } catch (error) {
+      console.error("Failed to add product to cart:", error);
+    }
+  };
+
+  const handleRemoveFromCart = async () => {
+    try {
+      await removeCartProduct(product._id);
+      setAdded(false);
+    } catch (error) {
+      console.error("Failed to remove product from cart:", error);
+    }
+  };
+
+  useEffect(() => {
+    const checkCart = async () => {
+      try {
+        const data = await fetchCart();
+
+        const isAdded = data.cart.items.some(
+          (item) => item.product._id === product._id
+        );
+
+        setAdded(isAdded);
+      } catch (error) {
+        console.error("Failed to check cart:", error);
+      }
+    };
+
+    checkCart();
+  }, [product._id]);
   return (
 
     <Link to={`/product/${product._id}`}>
@@ -55,11 +94,27 @@ const ProductCard = ({ product }) => {
 
             <button
               type="button"
-              disabled={product.stock <= 0}
-              onClick={() => toast.success(`${product.name} added to cart!`)}
-              className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+              disabled={product.stock <= 0 && !added}
+              className={`rounded-lg px-4 py-2 font-medium text-white transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 ${added
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-black hover:bg-gray-800"
+                }`}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (added) {
+                  handleRemoveFromCart();
+                } else {
+                  handleAddToCart();
+                }
+              }}
             >
-              Add to Cart
+              {product.stock <= 0 && !added
+                ? "Out of Stock"
+                : added
+                  ? "Remove from Cart"
+                  : "Add to Cart"}
             </button>
           </div>
         </div>
