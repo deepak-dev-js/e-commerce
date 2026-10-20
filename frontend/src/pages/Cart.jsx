@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useCart } from "../context/useCart.js";
 import {
@@ -12,7 +11,7 @@ const Cart = () => {
 
   useEffect(() => {
     const loadCart = async () => {
-      console.log("api call")
+      console.log("api call");
       try {
         const data = await fetchCart();
         setCartItems(data.cart.items);
@@ -46,68 +45,178 @@ const Cart = () => {
 
   const totalPrice = cartItems.reduce(
     (total, item) => total + item.product.price * item.quantity,
-    0
+    0,
   );
 
   return (
-    <div>
-      <h1>My Cart</h1>
-
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty.</p>
-      ) : (
-        <>
-          {cartItems.map((item) => (
-            <div key={item.product._id}>
-              <h3>{item.product.name}</h3>
-
-              <p>Price: ₹{item.product.price}</p>
-
-              <div>
-                <button
-                  onClick={() =>
-                    handleQuantityChange(
-                      item.product._id,
-                      item.quantity - 1
-                    )
-                  }
-                  disabled={item.quantity <= 1}
+    <div className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 lg:px-12">
+      {" "}
+      <div className="mx-auto max-w-6xl">
+        {" "}
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">
+          {" "}
+          Shopping Cart{" "}
+        </h1>{" "}
+        <p className="mb-8 text-gray-500">
+          {" "}
+          {cartItems.length} {cartItems.length === 1 ? "item" : "items"} in your
+          cart{" "}
+        </p>{" "}
+        {cartItems.length === 0 ? (
+          <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+            {" "}
+            <p className="mb-4 text-lg text-gray-500">
+              {" "}
+              Your cart is empty.{" "}
+            </p>{" "}
+            <a
+              href="/collection"
+              className="inline-block rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800"
+            >
+              {" "}
+              Continue Shopping{" "}
+            </a>{" "}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {" "}
+            {/* Cart Items */}{" "}
+            <div className="space-y-4 lg:col-span-2">
+              {" "}
+              {cartItems.map((item) => (
+                <div
+                  key={item.product._id}
+                  className="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:p-6"
                 >
-                  −
-                </button>
-
-                <span> {item.quantity} </span>
-
-                <button
-                  onClick={() =>
-                    handleQuantityChange(
-                      item.product._id,
-                      item.quantity + 1
-                    )
-                  }
-                >
-                  +
-                </button>
-              </div>
-
-              <p>
-                Subtotal: ₹{item.product.price * item.quantity}
-              </p>
-
+                  {" "}
+                  {/* Product Image */}{" "}
+                  <img
+                    src={item.product.image}
+                    alt={item.product.name}
+                    className="h-40 w-full rounded-xl bg-gray-100 object-cover sm:h-32 sm:w-32"
+                  />{" "}
+                  {/* Product Details */}{" "}
+                  <div className="flex flex-1 flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                    {" "}
+                    <div>
+                      {" "}
+                      <p className="mb-1 text-sm text-gray-500">
+                        {" "}
+                        {item.product.brand}{" "}
+                      </p>{" "}
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {" "}
+                        {item.product.name}{" "}
+                      </h2>{" "}
+                      <p className="mt-2 text-lg font-bold text-gray-900">
+                        {" "}
+                        ₹{item.product.price.toLocaleString("en-IN")}{" "}
+                      </p>{" "}
+                    </div>{" "}
+                    <div className="flex flex-wrap items-center justify-between gap-4 sm:flex-col sm:items-end">
+                      {" "}
+                      {/* Quantity Controls */}{" "}
+                      <div className="flex items-center rounded-lg border border-gray-200">
+                        {" "}
+                        <button
+                          onClick={() =>
+                            handleQuantityChange(
+                              item.product._id,
+                              item.quantity - 1,
+                            )
+                          }
+                          disabled={item.quantity <= 1}
+                          className="px-3 py-2 text-lg transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                          aria-label="Decrease quantity"
+                        >
+                          {" "}
+                          −{" "}
+                        </button>{" "}
+                        <span className="min-w-10 text-center font-medium">
+                          {" "}
+                          {item.quantity}{" "}
+                        </span>{" "}
+                        <button
+                          onClick={() =>
+                            handleQuantityChange(
+                              item.product._id,
+                              item.quantity + 1,
+                            )
+                          }
+                          disabled={item.quantity >= item.product.stock}
+                          className="px-3 py-2 text-lg transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                          aria-label="Increase quantity"
+                        >
+                          {" "}
+                          +{" "}
+                        </button>{" "}
+                      </div>{" "}
+                      {/* Subtotal */}{" "}
+                      <p className="font-semibold text-gray-900">
+                        {" "}
+                        ₹
+                        {(item.product.price * item.quantity).toLocaleString(
+                          "en-IN",
+                        )}{" "}
+                      </p>{" "}
+                      {/* Remove Button */}{" "}
+                      <button
+                        onClick={() => handleRemove(item.product._id)}
+                        className="text-sm font-medium text-red-500 transition hover:text-red-700"
+                      >
+                        {" "}
+                        Remove{" "}
+                      </button>{" "}
+                    </div>{" "}
+                  </div>{" "}
+                </div>
+              ))}{" "}
+            </div>{" "}
+            {/* Order Summary */}{" "}
+            <div className="h-fit rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+              {" "}
+              <h2 className="mb-6 text-xl font-bold text-gray-900">
+                {" "}
+                Order Summary{" "}
+              </h2>{" "}
+              <div className="space-y-4 border-b border-gray-100 pb-5">
+                {" "}
+                <div className="flex justify-between text-gray-600">
+                  {" "}
+                  <span>Subtotal</span>{" "}
+                  <span>₹{totalPrice.toLocaleString("en-IN")}</span>{" "}
+                </div>{" "}
+                <div className="flex justify-between text-gray-600">
+                  {" "}
+                  <span>Shipping</span>{" "}
+                  <span className="font-medium text-green-600">Free</span>{" "}
+                </div>{" "}
+              </div>{" "}
+              <div className="flex justify-between py-5 text-lg font-bold text-gray-900">
+                {" "}
+                <span>Total</span>{" "}
+                <span>₹{totalPrice.toLocaleString("en-IN")}</span>{" "}
+              </div>{" "}
               <button
-                onClick={() => handleRemove(item.product._id)}
+                onClick={() => alert("Checkout coming soon!")}
+                className="w-full rounded-xl bg-black py-3.5 font-semibold text-white transition hover:bg-gray-800"
               >
-                Remove
-              </button>
-            </div>
-          ))}
-
-          <h2>Total: ₹{totalPrice}</h2>
-        </>
-      )}
+                {" "}
+                Proceed to Checkout{" "}
+              </button>{" "}
+              <a
+                href="/collection"
+                className="mt-4 block text-center text-sm font-medium text-gray-500 transition hover:text-black"
+              >
+                {" "}
+                Continue Shopping{" "}
+              </a>{" "}
+            </div>{" "}
+          </div>
+        )}{" "}
+      </div>{" "}
     </div>
   );
 };
 
 export default Cart;
-
