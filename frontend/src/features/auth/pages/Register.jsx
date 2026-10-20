@@ -52,7 +52,7 @@ const Register = () => {
       >
         <div className="mb-6 text-center">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Create Account version 2
+            Create Account version 3
           </h1>
           <p className="mt-2 text-sm text-gray-500">
             Sign up to start shopping with us
