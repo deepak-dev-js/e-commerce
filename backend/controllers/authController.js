@@ -83,17 +83,17 @@ export const registerUser = async (req, res) => {
     try {
       await sendEmail({
         to: user.email,
-        subject: "Welcome to NovaCart!",
+        subject: "Welcome to ApnaShop!",
         text: `Hello ${user.name},
 
-Welcome to NovaCart!
+Welcome to ApnaShop!
 
 Your account has been created successfully.
 
 Thank you for joining us. Happy shopping!
 
 Best regards,
-NovaCart Team`,
+ApnaShop Team`,
       });
 
       console.log("Welcome email sent successfully");
@@ -178,15 +178,15 @@ export const loginUser = async (req, res) => {
     try {
       await sendEmail({
         to: user.email,
-        subject: "Login Notification - NovaCart",
+        subject: "Login Notification - ApnaShop",
         text: `Hello ${user.name},
 
-You have successfully logged in to your NovaCart account.
+You have successfully logged in to your ApnaShop account.
 
 If this wasn't you, please secure your account.
 
 Best regards,
-NovaCart Team`,
+ApnaShop Team`,
       });
     } catch (error) {
       console.error("Login notification email failed:", error);
