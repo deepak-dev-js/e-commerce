@@ -1,35 +1,26 @@
-import "dotenv/config";
-import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 20000,
-});
+import { Resend } from "resend";
 
-transporter.verify()
-  .then(() => {
-    console.log("SMTP server connection successful");
-  })
-  .catch((error) => {
-    console.error("SMTP connection failed:", error);
-  });
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async ({ to, subject, text, html }) => {
-  const info = await transporter.sendMail({
-    from: `"NovaCart" <${process.env.EMAIL_USER}>`,
-    to,
+  const { data, error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM,
+    to: Array.isArray(to) ? to : [to],
     subject,
-    text,
-    html,
+    ...(text ? { text } : {}),
+    ...(html ? { html } : {}),
   });
 
-  console.log("Email sent:", info.messageId);
-  return info;
+  if (error) {
+    console.error("Email sending failed:", error);
+    throw new Error("Failed to send email");
+  }
+
+  console.log("Email accepted by Resend:", data.id);
+
+  return data;
 };
 
 export default sendEmail;
+

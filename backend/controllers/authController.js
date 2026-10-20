@@ -95,7 +95,8 @@ Thank you for joining us. Happy shopping!
 Best regards,
 NovaCart Team`,
       });
-       console.log("Welcome email sent successfully");
+
+      console.log("Welcome email sent successfully");
     } catch (error) {
       console.error("Welcome email failed:", error);
     }
