@@ -52,7 +52,7 @@ const Register = () => {
         className="w-full max-w-md space-y-5 rounded-2xl bg-white p-8"
       >
         <div className="mb-6 text-center">
-           <img className="w-32 h-32 md:w-40 md:h-40" src={assets.logo} alt="Logo" />
+           <img className="w-32 h-32 md:w-40 md:h-40 mx-auto" src={assets.logo} alt="Logo" />
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Create Account version 3
           </h1>
