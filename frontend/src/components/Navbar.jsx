@@ -49,9 +49,9 @@ const navLinkClass = ({ isActive }) =>
   }`;
 
   return (
-    <nav className="flex items-center justify-between px-8 py-4 shadow-md">
+    <nav className="flex items-center justify-between px-8 shadow-md">
       <Link to="/" className="text-2xl font-bold">
-        <img className="w-12 h-12" src={assets.logo} alt="Logo" />
+        <img className="w-24 h-24 md:w-32 md:h-32" src={assets.logo} alt="Logo" />
       </Link>
 
       {/* Navigation Links */}
