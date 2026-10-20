@@ -42,10 +42,10 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center bg-gray-50 px-4 py-10">
+    <div className="flex items-center justify-center bg-gray-50 px-4 py-10">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md space-y-5 rounded-2xl bg-white p-8"
+        className="w-full max-w-md space-y-5 rounded-2xl p-8"
       >
         <div className="text-center">
            <img className="w-32 h-32 md:w-40 md:h-40 mx-auto" src={assets.logo} alt="Logo" />
