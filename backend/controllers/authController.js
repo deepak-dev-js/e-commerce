@@ -80,24 +80,25 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-//     try {
-//       await sendEmail({
-//         to: user.email,
-//         subject: "Welcome to NovaCart!",
-//         text: `Hello ${user.name},
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Welcome to NovaCart!",
+        text: `Hello ${user.name},
 
-// Welcome to NovaCart!
+Welcome to NovaCart!
 
-// Your account has been created successfully.
+Your account has been created successfully.
 
-// Thank you for joining us. Happy shopping!
+Thank you for joining us. Happy shopping!
 
-// Best regards,
-// NovaCart Team`,
-//       });
-//     } catch (error) {
-//       console.error("Welcome email failed:", error);
-//     }
+Best regards,
+NovaCart Team`,
+      });
+       console.log("Welcome email sent successfully");
+    } catch (error) {
+      console.error("Welcome email failed:", error);
+    }
 
     // Generate JWT
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
