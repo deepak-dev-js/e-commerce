@@ -18,9 +18,14 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
       minlength: 8,
       select: false,
+    },
+
+    googleId: {
+      type: String,
+      sparse: true,
+      unique: true,
     },
   },
   {
@@ -31,3 +36,4 @@ const userSchema = new mongoose.Schema(
 const User = mongoose.model("User", userSchema);
 
 export default User;
+

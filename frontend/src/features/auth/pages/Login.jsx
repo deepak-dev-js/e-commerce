@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import { loginUser } from "../services/authService";
 import { assets } from "../../../assets/assets";
 
@@ -41,14 +42,53 @@ const Login = () => {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setMessage("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/google`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            credential: credentialResponse.credential,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Google login failed");
+      }
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Google login failed:", error);
+      setMessage(error.message || "Google login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex h-screen justify-center bg-white px-4 py-10">
+    <div className="flex min-h-screen justify-center bg-white px-4 py-10">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md space-y-5 rounded-2xl p-8"
       >
         <div className="text-center">
-           <img className="w-32 h-32 md:w-40 md:h-40 mx-auto" src={assets.logo} alt="Logo" />
+          <img
+            className="mx-auto h-32 w-32 md:h-40 md:w-40"
+            src={assets.logo}
+            alt="Logo"
+          />
+
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome Back
           </h1>
@@ -117,6 +157,22 @@ const Login = () => {
           {loading ? "Logging in..." : "Login"}
         </button>
 
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-gray-200" />
+          <span className="text-sm text-gray-500">OR</span>
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+              setMessage("Google login was unsuccessful. Please try again.");
+            }}
+            useOneTap={false}
+          />
+        </div>
+
         <p className="text-center text-sm text-gray-600">
           Don't have an account?{" "}
           <Link
@@ -132,3 +188,4 @@ const Login = () => {
 };
 
 export default Login;
+

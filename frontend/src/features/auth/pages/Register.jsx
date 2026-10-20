@@ -54,7 +54,7 @@ const Register = () => {
         <div className="mb-6 text-center">
            <img className="w-32 h-32 md:w-40 md:h-40 mx-auto" src={assets.logo} alt="Logo" />
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Create Account version 3
+            Create Account
           </h1>
           <p className="mt-2 text-sm text-gray-500">
             Sign up to start shopping with us
