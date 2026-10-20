@@ -1,3 +1,5 @@
+import { toast } from "react-toastify";
+
 const ProductCard = ({ product }) => {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow duration-300 hover:shadow-lg">
@@ -35,9 +37,8 @@ const ProductCard = ({ product }) => {
           </span>
 
           <span
-            className={`font-medium ${
-              product.stock > 0 ? "text-green-600" : "text-red-600"
-            }`}
+            className={`font-medium ${product.stock > 0 ? "text-green-600" : "text-red-600"
+              }`}
           >
             {product.stock > 0 ? "In Stock" : "Out of Stock"}
           </span>
@@ -51,6 +52,7 @@ const ProductCard = ({ product }) => {
           <button
             type="button"
             disabled={product.stock <= 0}
+            onClick={() => toast.success(`${product.name} added to cart!`)}
             className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             Add to Cart
