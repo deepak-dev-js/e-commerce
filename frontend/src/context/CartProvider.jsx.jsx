@@ -1,25 +1,21 @@
 import { useState } from "react";
 import { CartContext } from "./CartContext.js";
+import {
+  addProductToCart,
+} from "../services/cartService.js";
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
-  const addToCart = (product) => {
-    setCartItems((prevItems) => {
-      const existingProduct = prevItems.find(
-        (item) => item._id === product._id
-      );
+  const addToCart = async (product) => {
+    try {
+      const data = await addProductToCart(product._id, 1);
 
-      if (existingProduct) {
-        return prevItems.map((item) =>
-          item._id === product._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-
-      return [...prevItems, { ...product, quantity: 1 }];
-    });
+      setCartItems(data.cart.items);
+    } catch (error) {
+      console.error("Failed to add product to cart:", error);
+      throw error;
+    }
   };
 
   const cartCount = cartItems.reduce(
@@ -28,7 +24,14 @@ export const CartProvider = ({ children }) => {
   );
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, cartCount }}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        setCartItems,
+        addToCart,
+        cartCount,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
