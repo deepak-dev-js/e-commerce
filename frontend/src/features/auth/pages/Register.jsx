@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerUser, googleAuthUser } from "../services/authService";
+import { registerUser } from "../services/authService";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
@@ -12,6 +12,7 @@ const Register = () => {
     password: "",
   });
 
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -24,39 +25,52 @@ const Register = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setMessage("");
     setLoading(true);
 
     try {
       const data = await registerUser(formData);
 
       toast.success(data.message || "Registration successful!");
-      navigate("/home");
+      navigate("/home", { replace: true });
     } catch (error) {
       toast.error(error.message || "Registration failed");
-      console.error("Registration error:", error);
+      console.error("Registration failed:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    if (!credentialResponse.credential) {
-      toast.error("Google authentication failed");
-      return;
-    }
-
+    setMessage("");
     setLoading(true);
 
     try {
-      const data = await googleAuthUser(
-        credentialResponse.credential
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/google`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            credential: credentialResponse.credential,
+          }),
+        }
       );
 
-      toast.success(data.message || "Google registration successful!");
-      navigate("/home");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Google registration failed");
+      }
+
+      toast.success(data.message || "Google authentication successful!");
+      navigate("/", { replace: true });
     } catch (error) {
+      console.error("Google registration failed:", error);
       toast.error(error.message || "Google registration failed");
-      console.error("Google registration error:", error);
     } finally {
       setLoading(false);
     }
@@ -89,13 +103,9 @@ const Register = () => {
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() => {
-              toast.error("Google registration failed");
+              toast.error("Google login was unsuccessful. Please try again.");
             }}
-            text="continue_with"
-            shape="rectangular"
-            theme="outline"
-            size="large"
-            width="320"
+            useOneTap={false}
           />
         </div>
 
@@ -184,6 +194,16 @@ const Register = () => {
         >
           {loading ? "Please wait..." : "Create Account"}
         </button>
+
+        {message && (
+          <p
+            role="status"
+            aria-live="polite"
+            className="rounded-lg bg-gray-50 p-3 text-center text-sm text-gray-700"
+          >
+            {message}
+          </p>
+        )}
       </form>
 
       <p className="mt-4 text-center text-sm text-gray-600">
