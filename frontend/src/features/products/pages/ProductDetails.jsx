@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useCart } from "../../../context/useCart";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -7,6 +8,12 @@ const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+    const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    addToCart(product);
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -80,6 +87,7 @@ const ProductDetails = () => {
           type="button"
           disabled={product.stock <= 0}
           className="mt-6 rounded-lg bg-black px-6 py-3 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+          onClick={handleAddToCart}
         >
           Add to Cart
         </button>

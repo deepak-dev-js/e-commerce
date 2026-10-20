@@ -1,10 +1,21 @@
+import { useCart } from "../context/useCart";
 
 const Cart = () => {
+  const { cartItems } = useCart();
+
   return (
     <div>
-      
-    </div>
-  )
-}
+      <h1>My Cart</h1>
 
-export default Cart
+      {cartItems.map((item) => (
+        <div key={item._id}>
+          <h3>{item.name}</h3>
+          <p>Price: ₹{item.price}</p>
+          <p>Quantity: {item.quantity}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default Cart;
