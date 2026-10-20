@@ -2,7 +2,7 @@ import { assets } from "../assets/assets";
 
 const Hero = () => {
   return (
-    <section className=" px-8 bg-gray-50">
+    <section className=" px-2 bg-gray-50">
           {/* Hero Image */}
       <div className="mt-5 md:mt-0">
         <img
