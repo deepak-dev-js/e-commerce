@@ -24,7 +24,7 @@ const ProtectedRoute = ({ children }) => {
   }, []);
 
   if (isAuthenticated === null) {
-    return <p>Checking authentication...</p>;
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {

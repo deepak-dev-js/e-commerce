@@ -1,5 +1,6 @@
 import express from "express";
 import Product from "../models/Product.js";
+import { getProductById } from "../controllers/productController.js";
 
 const router = express.Router();
 
@@ -26,5 +27,7 @@ router.get("/", async (req, res) => {
     });
   }
 });
+
+router.get("/:id", getProductById);
 
 export default router;
