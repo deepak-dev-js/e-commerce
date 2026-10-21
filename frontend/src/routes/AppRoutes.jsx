@@ -6,6 +6,10 @@ import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import ProtectedRoute from "./ProtectedRoute";
 import ProductDetails from "../features/products/pages/ProductDetails";
+import AdminDashboard from "../features/admin/pages/AdminDashboard";
+import AdminLayout from "../features/admin/components/AdminLayout";
+import AdminRoute from "./AdminRoute";
+import AddProduct from "../features/admin/pages/AddProduct";
 
 const AppRoutes = () => {
   return (
@@ -40,6 +44,17 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+       <Route element={<AdminRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+
+          <Route
+            path="products/add"
+            element={<AddProduct />}
+          />
+        </Route>
+      </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -1,4 +1,3 @@
-
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import AppRoutes from "../routes/AppRoutes";
@@ -6,11 +5,16 @@ import AppRoutes from "../routes/AppRoutes";
 const MainLayout = () => {
   const location = useLocation();
 
-  const isAuthPage = ["/login", "/register"].includes(location.pathname);
+  const isAuthPage = ["/login", "/register"].includes(
+    location.pathname
+  );
+
+  const isAdminPage = location.pathname.startsWith("/admin");
 
   return (
     <>
-      {!isAuthPage && <Navbar />}
+      {!isAuthPage && !isAdminPage && <Navbar />}
+
       <AppRoutes />
     </>
   );

@@ -16,6 +16,14 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+   const redirectByRole = (user) => {
+    if (user?.role === "admin") {
+      navigate("/admin", { replace: true });
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
+
   const handleChange = (event) => {
     setFormData({
       ...formData,
@@ -67,7 +75,7 @@ const Register = () => {
       }
 
       toast.success(data.message || "Google authentication successful!");
-      navigate("/", { replace: true });
+      redirectByRole(data.user);
     } catch (error) {
       console.error("Google registration failed:", error);
       toast.error(error.message || "Google registration failed");

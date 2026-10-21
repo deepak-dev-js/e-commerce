@@ -16,6 +16,14 @@ const Login = () => {
 
   const navigate = useNavigate();
 
+  const redirectByRole = (user) => {
+    if (user?.role === "admin") {
+      navigate("/admin", { replace: true });
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
+
   const handleChange = (event) => {
     setFormData({
       ...formData,
@@ -33,10 +41,11 @@ const Login = () => {
       const data = await loginUser(formData);
 
       if (data.success) {
-        navigate("/", { replace: true });
+        redirectByRole(data.user);
       }
     } catch (error) {
-      setMessage(error.message);
+      console.error("Login failed:", error);
+      setMessage(error.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -67,7 +76,7 @@ const Login = () => {
         throw new Error(data.message || "Google login failed");
       }
 
-      navigate("/", { replace: true });
+      redirectByRole(data.user);
     } catch (error) {
       console.error("Google login failed:", error);
       setMessage(error.message || "Google login failed");
@@ -167,7 +176,9 @@ const Login = () => {
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() => {
-              setMessage("Google login was unsuccessful. Please try again.");
+              setMessage(
+                "Google login was unsuccessful. Please try again."
+              );
             }}
             useOneTap={false}
           />

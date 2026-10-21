@@ -54,11 +54,9 @@ export const googleLogin = async (req, res) => {
       });
     }
 
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -68,11 +66,13 @@ export const googleLogin = async (req, res) => {
     });
 
     return res.status(200).json({
+      success: true,
       message: "Google login successful",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -83,4 +83,3 @@ export const googleLogin = async (req, res) => {
     });
   }
 };
-
