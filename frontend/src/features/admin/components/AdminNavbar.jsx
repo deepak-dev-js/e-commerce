@@ -18,7 +18,7 @@ const AdminNavbar = () => {
         throw new Error("Logout failed");
       }
 
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
       window.location.reload();
     } catch (error) {
       console.error("Admin logout failed:", error);

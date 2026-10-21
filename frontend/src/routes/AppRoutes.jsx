@@ -4,7 +4,7 @@ import Home from "../pages/Home";
 import Cart from "../pages/Cart";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
-import ProtectedRoute from "./ProtectedRoute";
+// import ProtectedRoute from "./ProtectedRoute";
 import ProductDetails from "../features/products/pages/ProductDetails";
 import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import AdminLayout from "../features/admin/components/AdminLayout";
@@ -13,6 +13,8 @@ import AddProduct from "../features/admin/pages/AddProduct";
 import Orders from "../features/admin/pages/Orders";
 import Customers from "../features/admin/pages/Customers";
 import Products from "../features/admin/pages/Products";
+import Checkout from "../features/checkout/pages/Checkout";
+import OrderSuccess from "../features/checkout/pages/OrderSuccess";
 
 const AppRoutes = () => {
   return (
@@ -23,18 +25,14 @@ const AppRoutes = () => {
       <Route
         path="/"
         element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
+          <Home />
         }
       />
 
       <Route
         path="/product/:id"
         element={
-          <ProtectedRoute>
-            <ProductDetails />
-          </ProtectedRoute>
+          <ProductDetails />
         }
       />
 
@@ -42,11 +40,11 @@ const AppRoutes = () => {
       <Route
         path="/cart"
         element={
-          <ProtectedRoute>
-            <Cart />
-          </ProtectedRoute>
+          <Cart />
         }
       />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/order-success/:orderId" element={<OrderSuccess />} />
 
       <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminLayout />}>

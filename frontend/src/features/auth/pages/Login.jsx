@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { loginUser } from "../services/authService";
 import { assets } from "../../../assets/assets";
@@ -13,8 +13,9 @@ const Login = () => {
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
 
   const redirectByRole = (user) => {
     if (user?.role === "admin") {
@@ -31,6 +32,7 @@ const Login = () => {
     });
   };
 
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -41,7 +43,13 @@ const Login = () => {
       const data = await loginUser(formData);
 
       if (data.success) {
-        redirectByRole(data.user);
+        const redirect = searchParams.get("redirect");
+
+        if (redirect === "/checkout") {
+          navigate("/checkout", { replace: true });
+        } else {
+          redirectByRole(data.user);
+        }
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -50,6 +58,8 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+
 
   const handleGoogleSuccess = async (credentialResponse) => {
     setMessage("");

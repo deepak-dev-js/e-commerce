@@ -1,50 +1,64 @@
-import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/useCart.js";
-import {
-  fetchCart,
-  updateCartQuantity,
-  removeCartProduct,
-} from "../services/cartService.js";
+import { useEffect, useState } from "react";
 
 const Cart = () => {
-  const { cartItems, setCartItems } = useCart();
+  const navigate = useNavigate();
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const loadCart = async () => {
-      console.log("api call");
+    const checkAuth = async () => {
       try {
-        const data = await fetchCart();
-        setCartItems(data.cart.items);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/auth/me`,
+          {
+            credentials: "include",
+          }
+        );
+
+        setIsAuthenticated(response.ok);
       } catch (error) {
-        console.error("Failed to fetch cart:", error);
+        console.error("Authentication check failed:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setAuthLoading(false);
       }
     };
 
-    loadCart();
-  }, [setCartItems]);
+    checkAuth();
+  }, []);
 
-  const handleQuantityChange = async (productId, quantity) => {
-    if (quantity < 1) return;
+  const handleCheckout = () => {
+    if (cartItems.length === 0) return;
 
-    try {
-      const data = await updateCartQuantity(productId, quantity);
-      setCartItems(data.cart.items);
-    } catch (error) {
-      console.error("Failed to update quantity:", error);
+    if (authLoading) return;
+
+    if (!isAuthenticated) {
+      navigate("/login?redirect=/checkout");
+      return;
     }
+
+    navigate("/checkout");
   };
 
-  const handleRemove = async (productId) => {
-    try {
-      const data = await removeCartProduct(productId);
-      setCartItems(data.cart.items);
-    } catch (error) {
-      console.error("Failed to remove product from cart:", error);
-    }
+
+  const { cartItems, updateQuantity, removeFromCart } = useCart();
+  console.log(cartItems)
+
+  const handleQuantityChange = (productId, quantity) => {
+    if (quantity < 1) return;
+
+    updateQuantity(productId, quantity);
+  };
+
+  const handleRemove = (productId) => {
+    removeFromCart(productId);
   };
 
   const totalPrice = cartItems.reduce(
-    (total, item) => total + item.product.price * item.quantity,
+    (total, item) => total + item.price * (item.quantity || 1),
     0,
   );
 
@@ -83,94 +97,79 @@ const Cart = () => {
             {/* Cart Items */}{" "}
             <div className="space-y-4 lg:col-span-2">
               {" "}
-              {cartItems.map((item) => (
-                <div
-                  key={item.product._id}
-                  className="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:p-6"
-                >
-                  {" "}
-                  {/* Product Image */}{" "}
-                  <img
-                    src={item.product.image}
-                    alt={item.product.name}
-                    className="h-40 w-full rounded-xl bg-gray-100 object-cover sm:h-32 sm:w-32"
-                  />{" "}
-                  {/* Product Details */}{" "}
-                  <div className="flex flex-1 flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    {" "}
-                    <div>
-                      {" "}
-                      <p className="mb-1 text-sm text-gray-500">
-                        {" "}
-                        {item.product.brand}{" "}
-                      </p>{" "}
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        {" "}
-                        {item.product.name}{" "}
-                      </h2>{" "}
-                      <p className="mt-2 text-lg font-bold text-gray-900">
-                        {" "}
-                        ₹{item.product.price.toLocaleString("en-IN")}{" "}
-                      </p>{" "}
-                    </div>{" "}
-                    <div className="flex flex-wrap items-center justify-between gap-4 sm:flex-col sm:items-end">
-                      {" "}
-                      {/* Quantity Controls */}{" "}
-                      <div className="flex items-center rounded-lg border border-gray-200">
-                        {" "}
+              {cartItems.map((item) => {
+                const quantity = item.quantity || 1;
+
+                return (
+                  <div
+                    key={item._id}
+                    className="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:p-6"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-40 w-full rounded-xl bg-gray-100 object-cover sm:h-32 sm:w-32"
+                    />
+
+                    <div className="flex flex-1 flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="mb-1 text-sm text-gray-500">
+                          {item.brand}
+                        </p>
+
+                        <h2 className="text-lg font-semibold text-gray-900">
+                          {item.name}
+                        </h2>
+
+                        <p className="mt-2 text-lg font-bold text-gray-900">
+                          ₹{item.price.toLocaleString("en-IN")}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-4 sm:flex-col sm:items-end">
+                        <div className="flex items-center rounded-lg border border-gray-200">
+                          <button
+                            onClick={() =>
+                              handleQuantityChange(item._id, quantity - 1)
+                            }
+                            disabled={quantity <= 1}
+                            className="px-3 py-2 text-lg transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Decrease quantity"
+                          >
+                            −
+                          </button>
+
+                          <span className="min-w-10 text-center font-medium">
+                            {quantity}
+                          </span>
+
+                          <button
+                            onClick={() =>
+                              handleQuantityChange(item._id, quantity + 1)
+                            }
+                            disabled={quantity >= item.stock}
+                            className="px-3 py-2 text-lg transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <p className="font-semibold text-gray-900">
+                          ₹{(item.price * quantity).toLocaleString("en-IN")}
+                        </p>
+
                         <button
-                          onClick={() =>
-                            handleQuantityChange(
-                              item.product._id,
-                              item.quantity - 1,
-                            )
-                          }
-                          disabled={item.quantity <= 1}
-                          className="px-3 py-2 text-lg transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
-                          aria-label="Decrease quantity"
+                          onClick={() => handleRemove(item._id)}
+                          className="text-sm font-medium text-red-500 transition hover:text-red-700"
                         >
-                          {" "}
-                          −{" "}
-                        </button>{" "}
-                        <span className="min-w-10 text-center font-medium">
-                          {" "}
-                          {item.quantity}{" "}
-                        </span>{" "}
-                        <button
-                          onClick={() =>
-                            handleQuantityChange(
-                              item.product._id,
-                              item.quantity + 1,
-                            )
-                          }
-                          disabled={item.quantity >= item.product.stock}
-                          className="px-3 py-2 text-lg transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
-                          aria-label="Increase quantity"
-                        >
-                          {" "}
-                          +{" "}
-                        </button>{" "}
-                      </div>{" "}
-                      {/* Subtotal */}{" "}
-                      <p className="font-semibold text-gray-900">
-                        {" "}
-                        ₹
-                        {(item.product.price * item.quantity).toLocaleString(
-                          "en-IN",
-                        )}{" "}
-                      </p>{" "}
-                      {/* Remove Button */}{" "}
-                      <button
-                        onClick={() => handleRemove(item.product._id)}
-                        className="text-sm font-medium text-red-500 transition hover:text-red-700"
-                      >
-                        {" "}
-                        Remove{" "}
-                      </button>{" "}
-                    </div>{" "}
-                  </div>{" "}
-                </div>
-              ))}{" "}
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>{" "}
             {/* Order Summary */}{" "}
             <div className="h-fit rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
@@ -198,12 +197,12 @@ const Cart = () => {
                 <span>₹{totalPrice.toLocaleString("en-IN")}</span>{" "}
               </div>{" "}
               <button
-                onClick={() => alert("Checkout coming soon!")}
-                className="w-full rounded-xl bg-black py-3.5 font-semibold text-white transition hover:bg-gray-800"
+                onClick={handleCheckout}
+                disabled={cartItems.length === 0}
+                className="w-full rounded-xl bg-black py-3.5 font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {" "}
-                Proceed to Checkout{" "}
-              </button>{" "}
+                Proceed to Checkout
+              </button>
               <a
                 href="/collection"
                 className="mt-4 block text-center text-sm font-medium text-gray-500 transition hover:text-black"

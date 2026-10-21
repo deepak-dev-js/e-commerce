@@ -17,32 +17,54 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const profileRef = useRef(null);
-    const { cartItems, setCartItems } = useCart();
-   
-     useEffect(() => {
-       const loadCart = async () => {
-         console.log("api call");
-         try {
-           const data = await fetchCart();
-           setCartItems(data.cart.items);
-         } catch (error) {
-           console.error("Failed to fetch cart:", error);
-         }
-       };
-   
-       loadCart();
-     }, [setCartItems]);
+  const { cartItems, setCartItems } = useCart();
+
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/auth/me`,
+          {
+            credentials: "include",
+          }
+        );
+
+        setIsAuthenticated(response.ok);
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    const loadCart = async () => {
+      console.log("api call");
+      try {
+        const data = await fetchCart();
+        setCartItems(data.cart.items);
+      } catch (error) {
+        console.error("Failed to fetch cart:", error);
+      }
+    };
+
+    loadCart();
+  }, [setCartItems]);
 
   const navigate = useNavigate();
 
-const handleLogout = async () => {
-  try {
-    await logoutUser();
-    navigate("/login", { replace: true });
-  } catch (error) {
-    console.error("Logout failed:", error.message);
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error.message);
+    }
+  };
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -58,12 +80,11 @@ const handleLogout = async () => {
     };
   }, []);
 
-const navLinkClass = ({ isActive }) =>
-  `block rounded-md px-3 py-2 transition-colors ${
-    isActive
+  const navLinkClass = ({ isActive }) =>
+    `block rounded-md px-3 py-2 transition-colors ${isActive
       ? "bg-gray-100 font-semibold text-black"
       : "text-gray-600 hover:bg-gray-50 hover:text-black"
-  }`;
+    }`;
 
   return (
     <nav className="flex items-center justify-between px-8 shadow-md">
@@ -148,15 +169,24 @@ const navLinkClass = ({ isActive }) =>
                 Orders
               </NavLink>
 
-              <button
+              {isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    handleLogout();
+                  }}
+                  className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              ) : (<button
                 onClick={() => {
-                  setIsProfileOpen(false);
-                  handleLogout();
+                  navigate("/login");
                 }}
                 className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-gray-100"
               >
-                Logout
-              </button>
+                Login
+              </button>)}
             </div>
           )}
         </div>
@@ -179,11 +209,10 @@ const navLinkClass = ({ isActive }) =>
         )}
 
         {/* Mobile Sidebar */}
-       <aside
-  className={`fixed right-0 top-0 z-50 h-screen w-72 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden ${
-    isMenuOpen ? "translate-x-0" : "translate-x-full"
-  }`}
->
+        <aside
+          className={`fixed right-0 top-0 z-50 h-screen w-72 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden ${isMenuOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+        >
           {/* Sidebar Header */}
           <div className="flex items-center justify-between border-b px-5 py-5">
             <span className="text-lg font-semibold">Menu</span>
@@ -238,7 +267,7 @@ const navLinkClass = ({ isActive }) =>
                 Contact
               </NavLink>
             </li>
-             <li>
+            <li>
               <NavLink
                 to="/register"
                 onClick={() => setIsMenuOpen(false)}

@@ -7,11 +7,11 @@ formData.append("image", image);
 formData.append("category", category);
 
 const response = await fetch(
-`${API_URL}/api/upload/upload-product-image`,
+`${API_URL}/api/admin/upload-product-image`,
 {
 method: "POST",
 credentials: "include",
-body: formData,
+body: formData, 
 }
 );
 

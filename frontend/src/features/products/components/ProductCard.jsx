@@ -1,48 +1,40 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { addProductToCart, fetchCart, removeCartProduct } from "../../../services/cartService";
+import { useCart } from "../../../context/useCart.js";
 
 const ProductCard = ({ product }) => {
-  const [added, setAdded] = useState(false);
+   const { addToCart, removeFromCart, isInCart } = useCart();
 
-  const handleAddToCart = async () => {
-    setAdded(true);
-    try {
-      console.log(product)
-      await addProductToCart(product._id);
-      setAdded(true);
-    } catch (error) {
-      console.error("Failed to add product to cart:", error);
-    }
-  };
+  // const handleAddToCart = async () => {
+  //   setAdded(true);
+  //   try {
+  //     console.log(product)
+  //     await addProductToCart(product._id);
+  //     setAdded(true);
+  //   } catch (error) {
+  //     console.error("Failed to add product to cart:", error);
+  //   }
+  // };
 
-  const handleRemoveFromCart = async () => {
-    setAdded(false);
-    try {
-      await removeCartProduct(product._id);
-      setAdded(false);
-    } catch (error) {
-      console.error("Failed to remove product from cart:", error);
-    }
-  };
+  // const handleRemoveFromCart = async () => {
+  //   setAdded(false);
+  //   try {
+  //     await removeCartProduct(product._id);
+  //     setAdded(false);
+  //   } catch (error) {
+  //     console.error("Failed to remove product from cart:", error);
+  //   }
+  // };
 
-  useEffect(() => {
-    const checkCart = async () => {
-      try {
-        const data = await fetchCart();
+  const handleAddToCart = () => {
+  addToCart(product);
+};
 
-        const isAdded = data.cart.items.some(
-          (item) => item.product._id === product._id
-        );
+const handleRemoveFromCart = () => {
+  removeFromCart(product._id);
+};
 
-        setAdded(isAdded);
-      } catch (error) {
-        console.error("Failed to check cart:", error);
-      }
-    };
+const added = isInCart(product._id);
 
-    checkCart();
-  }, [product._id]);
   return (
 
     <Link to={`/product/${product._id}`}>
