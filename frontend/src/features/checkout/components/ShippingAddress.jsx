@@ -74,28 +74,6 @@ const ShippingAddress = ({ shippingAddress, setShippingAddress }) => {
           />
         </div>
 
-        <div>
-          <label htmlFor="pincode" className="mb-2 block text-sm font-medium">
-            PIN Code
-          </label>
-
-          <input
-            id="pincode"
-            name="pincode"
-            type="text"
-            value={shippingAddress.pincode}
-            onChange={handleChange}
-            autoComplete="postal-code"
-            inputMode="numeric"
-            pattern="[0-9]{6}"
-            maxLength={6}
-            className={inputClass}
-            placeholder="6-digit PIN code"
-            title="Enter a 6-digit PIN code"
-            required
-          />
-        </div>
-
         <div className="sm:col-span-2">
           <label
             htmlFor="addressLine"
@@ -112,40 +90,6 @@ const ShippingAddress = ({ shippingAddress, setShippingAddress }) => {
             autoComplete="street-address"
             className={inputClass}
             placeholder="House number, street, area"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="city" className="mb-2 block text-sm font-medium">
-            City
-          </label>
-
-          <input
-            id="city"
-            name="city"
-            value={shippingAddress.city}
-            onChange={handleChange}
-            autoComplete="address-level2"
-            className={inputClass}
-            placeholder="Enter your city"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="state" className="mb-2 block text-sm font-medium">
-            State
-          </label>
-
-          <input
-            id="state"
-            name="state"
-            value={shippingAddress.state}
-            onChange={handleChange}
-            autoComplete="address-level1"
-            className={inputClass}
-            placeholder="Enter your state"
             required
           />
         </div>

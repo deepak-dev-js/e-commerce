@@ -131,7 +131,7 @@ const OrderSummary = ({ shippingAddress }) => {
       const razorpay = new window.Razorpay(options);
 
       razorpay.on("payment.failed", (response) => {
-        console.error("Razorpay payment failed:", response.error);
+        console.error("Razorpay payment failed:", response);
 
         setErrorMessage(
           response.error.description || "Payment failed. Please try again."

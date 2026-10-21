@@ -19,9 +19,6 @@ export const createPaymentOrder = async (req, res) => {
       "email",
       "phone",
       "addressLine",
-      "city",
-      "state",
-      "pincode",
     ];
 
     const validAddress =
@@ -118,9 +115,6 @@ export const createPaymentOrder = async (req, res) => {
         email: shippingAddress.email.trim(),
         phone: shippingAddress.phone.trim(),
         addressLine: shippingAddress.addressLine.trim(),
-        city: shippingAddress.city.trim(),
-        state: shippingAddress.state.trim(),
-        pincode: shippingAddress.pincode.trim(),
       },
       totalAmount: totalPaise / 100,
       currency: "INR",

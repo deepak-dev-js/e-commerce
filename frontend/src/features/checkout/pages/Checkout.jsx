@@ -12,9 +12,6 @@ const Checkout = () => {
     email: "",
     phone: "",
     addressLine: "",
-    city: "",
-    state: "",
-    pincode: "",
   });
 
   if (cartItems.length === 0) {
