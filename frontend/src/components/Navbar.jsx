@@ -240,11 +240,11 @@ const Navbar = () => {
 
             <li>
               <NavLink
-                to="/collection"
+                to="/my-orders"
                 onClick={() => setIsMenuOpen(false)}
                 className={navLinkClass}
               >
-                Collection
+                My Orders
               </NavLink>
             </li>
 

@@ -15,6 +15,7 @@ import Customers from "../features/admin/pages/Customers";
 import Products from "../features/admin/pages/Products";
 import Checkout from "../features/checkout/pages/Checkout";
 import OrderSuccess from "../features/checkout/pages/OrderSuccess";
+import MyOrders from "../features/orders/pages/MyOrders";
 
 const AppRoutes = () => {
   return (
@@ -44,6 +45,7 @@ const AppRoutes = () => {
         }
       />
       <Route path="/checkout" element={<Checkout />} />
+      <Route path="/my-orders" element={<MyOrders />} />
       <Route path="/order-success/:orderId" element={<OrderSuccess />} />
 
       <Route element={<AdminRoute />}>
