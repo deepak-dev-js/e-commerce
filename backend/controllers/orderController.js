@@ -59,13 +59,6 @@ export const cancelMyOrder = async (req, res) => {
       });
     }
 
-    if (order.paymentStatus === "paid") {
-      return res.status(400).json({
-        success: false,
-        message:
-          "This order has already been paid. A refund process is required before cancellation can be completed.",
-      });
-    }
 
     order.orderStatus = "cancelled";
     await order.save();
