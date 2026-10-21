@@ -169,7 +169,7 @@ const MyOrders = () => {
                                             >
                                                 Cancel Order
                                             </button>
-                                        )}s
+                                        )}
                                 </div>
 
                                 <p className="text-lg font-bold text-gray-900">
