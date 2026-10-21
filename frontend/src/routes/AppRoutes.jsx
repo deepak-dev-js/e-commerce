@@ -10,6 +10,9 @@ import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import AdminLayout from "../features/admin/components/AdminLayout";
 import AdminRoute from "./AdminRoute";
 import AddProduct from "../features/admin/pages/AddProduct";
+import Orders from "../features/admin/pages/Orders";
+import Customers from "../features/admin/pages/Customers";
+import Products from "../features/admin/pages/Products";
 
 const AppRoutes = () => {
   return (
@@ -45,13 +48,25 @@ const AppRoutes = () => {
         }
       />
 
-       <Route element={<AdminRoute />}>
+      <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
 
           <Route
             path="products/add"
             element={<AddProduct />}
+          />
+          <Route
+            path="products"
+            element={<Products />}
+          />
+          <Route
+            path="orders"
+            element={<Orders />}
+          />
+          <Route
+            path="customers"
+            element={<Customers />}
           />
         </Route>
       </Route>
