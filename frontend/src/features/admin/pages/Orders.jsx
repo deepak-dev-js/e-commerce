@@ -8,41 +8,41 @@ const Orders = () => {
   const [error, setError] = useState("");
   const [updatingOrderId, setUpdatingOrderId] = useState(null);
   const handleStatusChange = async (orderId, orderStatus) => {
-  try {
-    setUpdatingOrderId(orderId);
+    try {
+      setUpdatingOrderId(orderId);
 
-    const response = await fetch(
-      `${API_URL}/api/admin/orders/${orderId}/status`,
-      {
-        method: "PATCH",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ orderStatus }),
+      const response = await fetch(
+        `${API_URL}/api/admin/orders/${orderId}/status`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ orderStatus }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update order status.");
       }
-    );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to update order status.");
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId
+            ? { ...order, orderStatus: data.order.orderStatus }
+            : order
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+      alert(error.message || "Failed to update order status.");
+    } finally {
+      setUpdatingOrderId(null);
     }
-
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order._id === orderId
-          ? { ...order, orderStatus: data.order.orderStatus }
-          : order
-      )
-    );
-  } catch (error) {
-    console.error("Failed to update order status:", error);
-    alert(error.message || "Failed to update order status.");
-  } finally {
-    setUpdatingOrderId(null);
-  }
-};
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -175,42 +175,59 @@ const Orders = () => {
                     ₹{order.totalAmount?.toLocaleString("en-IN")}
                   </td>
 
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                        order.paymentStatus === "paid"
-                          ? "bg-green-100 text-green-700"
-                          : order.paymentStatus === "failed"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {order.paymentStatus}
-                    </span>
-                  </td>
-
-                 <td className="px-5 py-4">
-  <select
-    value={order.orderStatus}
-    disabled={updatingOrderId === order._id}
-    onChange={(e) =>
-      handleStatusChange(order._id, e.target.value)
-    }
-    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm capitalize outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+    <td className="px-5 py-4">
+  <span
+    className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+      order.paymentStatus === "paid"
+        ? "bg-green-100 text-green-700"
+        : order.paymentStatus === "refunded"
+          ? "bg-blue-100 text-blue-700"
+          : order.paymentStatus === "refund_processing"
+            ? "bg-yellow-100 text-yellow-700"
+            : order.paymentStatus === "failed" ||
+                order.paymentStatus === "cancel"
+              ? "bg-red-100 text-red-700"
+              : "bg-gray-100 text-gray-700"
+    }`}
   >
-    <option value="confirmed">Confirmed</option>
-    <option value="packed">Packed</option>
-    <option value="shipped">Shipped</option>
-    <option value="in_transit">In Transit</option>
-    <option value="out_for_delivery">Out for Delivery</option>
-    <option value="delivered">Delivered</option>
-    <option value="cancelled">Cancelled</option>
-  </select>
-
-  {updatingOrderId === order._id && (
-    <p className="mt-1 text-xs text-gray-500">Updating...</p>
-  )}
+    {order.paymentStatus === "refund_processing"
+      ? "Refund Processing"
+      : order.paymentStatus === "refunded"
+        ? "Refunded"
+        : order.paymentStatus === "paid"
+          ? "Paid"
+          : order.paymentStatus === "failed"
+            ? "Failed"
+            : order.paymentStatus === "cancel"
+              ? "Cancelled"
+              : order.paymentStatus}
+  </span>
 </td>
+
+
+
+                  <td className="px-5 py-4">
+                    <select
+                      value={order.orderStatus}
+                      disabled={updatingOrderId === order._id}
+                      onChange={(e) =>
+                        handleStatusChange(order._id, e.target.value)
+                      }
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm capitalize outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="confirmed">Confirmed</option>
+                      <option value="packed">Packed</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="in_transit">In Transit</option>
+                      <option value="out_for_delivery">Out for Delivery</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+
+                    {updatingOrderId === order._id && (
+                      <p className="mt-1 text-xs text-gray-500">Updating...</p>
+                    )}
+                  </td>
 
                   <td className="whitespace-nowrap px-5 py-4 text-gray-600">
                     {order.createdAt

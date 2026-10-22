@@ -55,7 +55,7 @@ export const cancelMyOrder = async (req, res) => {
     }
 
     order.orderStatus = "cancelled";
-    order.paymentStatus = "cancel";
+    order.paymentStatus = "refund_processing";
 
     await order.save();
 
