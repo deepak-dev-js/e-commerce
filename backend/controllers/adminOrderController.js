@@ -1,5 +1,4 @@
 import Order from "../models/Order.js";
-import Order from "../models/Order.js";
 import sendWhatsAppMessage from "../services/whatsappService.js";
 import sendEmail from "../services/emailService.js";
 
