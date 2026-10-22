@@ -7,36 +7,27 @@ const MyOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [cancellingOrderId, setCancellingOrderId] = useState(null);
 
     const handleCancelOrder = async (orderId) => {
         const result = await Swal.fire({
             title: "Cancel Order?",
             text: "Are you sure you want to cancel this order?",
             icon: "warning",
+            width: "350px",
             showCancelButton: true,
             confirmButtonText: "Yes, cancel order",
             cancelButtonText: "Keep Order",
-            confirmButtonColor: "#dc2626",
-            cancelButtonColor: "#6b7280",
-            reverseButtons: true,
-            focusCancel: true,
         });
 
         if (!result.isConfirmed) return;
 
         try {
-            setCancellingOrderId(orderId);
 
             Swal.fire({
                 title: "Cancelling Order...",
-                text: "Please wait.",
                 allowOutsideClick: false,
-                allowEscapeKey: false,
                 showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
+                didOpen: () => Swal.showLoading(),
             });
 
             const response = await fetch(
@@ -63,7 +54,6 @@ const MyOrders = () => {
                 title: "Order Cancelled!",
                 text: "Your order has been cancelled successfully.",
                 icon: "success",
-                confirmButtonText: "OK",
                 confirmButtonColor: "#2563eb",
             });
         } catch (error) {
@@ -73,11 +63,8 @@ const MyOrders = () => {
                 title: "Cancellation Failed",
                 text: error.message || "Failed to cancel order.",
                 icon: "error",
-                confirmButtonText: "OK",
                 confirmButtonColor: "#2563eb",
             });
-        } finally {
-            setCancellingOrderId(null);
         }
     };
 
@@ -211,36 +198,9 @@ const MyOrders = () => {
                                     ].includes(order.orderStatus) && (
                                             <button
                                                 onClick={() => handleCancelOrder(order._id)}
-                                                disabled={cancellingOrderId === order._id}
-                                                className="ml-4 inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                className="rounded-lg border border-red-200 ml-4 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
                                             >
-                                                {cancellingOrderId === order._id && (
-                                                    <svg
-                                                        className="h-4 w-4 animate-spin"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <circle
-                                                            className="opacity-25"
-                                                            cx="12"
-                                                            cy="12"
-                                                            r="10"
-                                                            stroke="currentColor"
-                                                            strokeWidth="4"
-                                                        />
-
-                                                        <path
-                                                            className="opacity-75"
-                                                            fill="currentColor"
-                                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                                                        />
-                                                    </svg>
-                                                )}
-
-                                                {cancellingOrderId === order._id
-                                                    ? "Cancelling..."
-                                                    : "Cancel Order"}
+                                                Cancel Order
                                             </button>
                                         )}
                                 </div>
