@@ -10,7 +10,7 @@ const sendWhatsAppMessage = async (phone, message) => {
         },
         body: JSON.stringify({
           messaging_product: "whatsapp",
-          recipient_type: "individual",
+          recipient_type: "individual", 
           to: phone,
           type: "text",
           text: {
