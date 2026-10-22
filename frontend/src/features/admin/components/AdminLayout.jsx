@@ -1,12 +1,11 @@
 
 import { Outlet } from "react-router-dom";
-import AdminSidebar from "./AdminSidebar";
 import AdminNavbar from "./AdminNavbar";
 
 const AdminLayout = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <AdminSidebar />
+      {/* <AdminSidebar /> */}
 
       <div className="min-w-0 flex-1">
         <AdminNavbar />

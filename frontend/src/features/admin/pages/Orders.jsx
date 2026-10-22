@@ -121,6 +121,38 @@ const Orders = () => {
 
   };
 
+  const handleMarkAsRefunded = async (orderId) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/admin/orders/${orderId}/payment-status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            paymentStatus: "refunded",
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update refund status.");
+      }
+
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId ? data.order : order
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update refund status:", error);
+    }
+  };
+
   if (loading) {
     return <p className="p-6 text-gray-600">Loading orders...</p>;
   }
@@ -261,15 +293,15 @@ const Orders = () => {
                 <td className="px-5 py-4">
                   <span
                     className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${order.paymentStatus === "paid"
-                        ? "bg-green-100 text-green-700"
-                        : order.paymentStatus === "refunded"
-                          ? "bg-blue-100 text-blue-700"
-                          : order.paymentStatus === "refund_processing"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : order.paymentStatus === "failed" ||
-                              order.paymentStatus === "cancel"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-gray-100 text-gray-700"
+                      ? "bg-green-100 text-green-700"
+                      : order.paymentStatus === "refunded"
+                        ? "bg-blue-100 text-blue-700"
+                        : order.paymentStatus === "refund_processing"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : order.paymentStatus === "failed" ||
+                            order.paymentStatus === "cancel"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
                       }`}
                   >
                     {order.paymentStatus === "refund_processing"
@@ -284,6 +316,18 @@ const Orders = () => {
                               ? "Cancelled"
                               : order.paymentStatus}
                   </span>
+                </td>
+
+                <td>
+                  {order.orderStatus === "cancelled" &&
+                    order.paymentStatus === "refund_processing" && (
+                      <button
+                        onClick={() => handleMarkAsRefunded(order._id)}
+                        className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                      >
+                        Mark as Refunded
+                      </button>
+                    )}
                 </td>
 
                 <td className="px-5 py-4">

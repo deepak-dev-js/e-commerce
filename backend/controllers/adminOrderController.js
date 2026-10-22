@@ -36,7 +36,6 @@ export const updateOrderStatus = async (req, res) => {
       "cancelled",
     ];
 
-
     const order = await Order.findByIdAndUpdate(
       req.params.id,
       { $set: { orderStatus } },
@@ -61,6 +60,55 @@ export const updateOrderStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update order status",
+    });
+  }
+};
+
+export const updatePaymentStatus = async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+
+    if (!["refund_processing", "refunded"].includes(paymentStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment status.",
+      });
+    }
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found.",
+      });
+    }
+
+    if (
+      order.orderStatus !== "cancelled" ||
+      order.paymentStatus !== "refund_processing" ||
+      paymentStatus !== "refunded"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "This order cannot be marked as refunded.",
+      });
+    }
+
+    order.paymentStatus = "refunded";
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Order marked as refunded successfully.",
+      order,
+    });
+  } catch (error) {
+    console.error("Failed to update payment status:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update payment status.",
     });
   }
 };

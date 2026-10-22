@@ -2,6 +2,7 @@ import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import adminOnly from "../middleware/adminMiddleware.js";
 import { getDashboardStats } from "../controllers/adminDashboardController.js";
+import { updatePaymentStatus } from "../controllers/adminOrderController.js";
 
 const router = express.Router();
 
@@ -17,5 +18,12 @@ router.get("/dashboard", protect, adminOnly, (req, res) => {
 });
 
 router.get("/dashboard/stats", protect, adminOnly, getDashboardStats);
+
+router.patch(
+    "/orders/:id/payment-status",
+    protect,
+    adminOnly,
+    updatePaymentStatus
+);
 
 export default router;
