@@ -1,6 +1,6 @@
 import Order from "../models/Order.js";
-import sendWhatsAppMessage from "../services/whatsappService.js";
 import sendEmail from "../services/emailService.js";
+import sendWhatsAppMessage from "../services/whatsappService.js";
 
 export const getAllOrders = async (req, res) => {
   try {

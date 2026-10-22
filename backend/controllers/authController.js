@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import sendEmail from "../utils/sendEmail.js";
+import sendEmail from "../services/emailService.js";
 
 export const getMe = async (req, res) => {
   try {
