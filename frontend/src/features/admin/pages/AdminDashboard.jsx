@@ -164,7 +164,7 @@ const AdminDashboard = () => {
           </p>
 
           <h2 className="text-3xl font-bold mt-3">
-            {loading ? "Loading..." : stat.value}
+            {stat.value}
           </h2>
         </div>
       ))}
