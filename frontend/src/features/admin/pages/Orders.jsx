@@ -6,6 +6,43 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatingOrderId, setUpdatingOrderId] = useState(null);
+  const handleStatusChange = async (orderId, orderStatus) => {
+  try {
+    setUpdatingOrderId(orderId);
+
+    const response = await fetch(
+      `${API_URL}/api/admin/orders/${orderId}/status`,
+      {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderStatus }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to update order status.");
+    }
+
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order._id === orderId
+          ? { ...order, orderStatus: data.order.orderStatus }
+          : order
+      )
+    );
+  } catch (error) {
+    console.error("Failed to update order status:", error);
+    alert(error.message || "Failed to update order status.");
+  } finally {
+    setUpdatingOrderId(null);
+  }
+};
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -152,11 +189,30 @@ const Orders = () => {
                     </span>
                   </td>
 
-                  <td className="px-5 py-4">
-                    <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-medium capitalize text-blue-700">
-                      {order.orderStatus}
-                    </span>
-                  </td>
+                 <td className="px-5 py-4">
+  <select
+    value={order.orderStatus}
+    disabled={updatingOrderId === order._id}
+    onChange={(e) =>
+      handleStatusChange(order._id, e.target.value)
+    }
+    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm capitalize outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <option value="placed">Placed</option>
+    <option value="confirmed">Confirmed</option>
+    <option value="processing">Processing</option>
+    <option value="packed">Packed</option>
+    <option value="shipped">Shipped</option>
+    <option value="in_transit">In Transit</option>
+    <option value="out_for_delivery">Out for Delivery</option>
+    <option value="delivered">Delivered</option>
+    <option value="cancelled">Cancelled</option>
+  </select>
+
+  {updatingOrderId === order._id && (
+    <p className="mt-1 text-xs text-gray-500">Updating...</p>
+  )}
+</td>
 
                   <td className="whitespace-nowrap px-5 py-4 text-gray-600">
                     {order.createdAt

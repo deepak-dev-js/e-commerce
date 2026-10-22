@@ -1,4 +1,4 @@
-# MERN E-Commerce Project — Deployment Checklist
+# MERN ApnaShop Project — Deployment Checklist
 
 ## 1. Deployment Platforms
 
@@ -89,3 +89,101 @@
 * [ ] Payment works in test mode.
 * [ ] Website works on mobile and desktop.
 * [ ] Backend and database remain accessible.
+
+
+
+
+# ApnaShop – Android APK Build & Update
+
+This guide explains how to build a new APK for ApnaShop and update the existing app installed on your Android phone.
+
+## 1. Open the Native Project
+
+Open the terminal in VS Code and navigate to the native project directory:
+
+```bash
+cd C:\Projects\apnashop\native
+```
+
+## 2. Make Code Changes
+
+Update the required files in your React Native project.
+
+For example:
+
+* Update the home screen UI.
+* Add new screens or components.
+* Modify styles or functionality.
+* Fix bugs.
+
+Save your changes before starting the build.
+
+## 3. Build a New APK
+
+Run the following command:
+
+```bash
+npx eas-cli@latest build --platform android --profile preview
+```
+
+EAS Build will upload your project and build the APK on Expo's cloud servers.
+
+Wait for the build to finish successfully.
+
+## 4. Download the APK
+
+After the build completes:
+
+1. Open the build link displayed in the terminal.
+2. Confirm that the build status is `Finished`.
+3. Download the APK file to your computer.
+
+## 5. Update the Existing App
+
+Transfer the downloaded APK to your Android phone if necessary.
+
+1. Open the APK file on your phone.
+2. Allow installation from that source if Android requests permission.
+3. Tap **Install** or **Update**.
+4. Wait for installation to finish.
+5. Open ApnaShop and verify the changes.
+
+Usually, you do not need to uninstall the existing app first.
+
+## 6. Important Requirements
+
+To update the existing installation successfully:
+
+* Keep the Android application ID unchanged: `com.apnashopsteam.apnashop`.
+* Preserve the Android signing credentials used for the previous build.
+* Keep the package configuration consistent.
+* Ensure the new build completes successfully before installing it.
+
+**Warning:** Uninstalling the existing app may delete its locally stored data. Avoid uninstalling it unless necessary.
+
+## 7. Build Command for Future Updates
+
+Whenever you want to install a new version of ApnaShop, repeat this command:
+
+```bash
+npx eas-cli@latest build --platform android --profile preview
+```
+
+Download the new APK and install it on your phone.
+
+## 8. Important Note About GitHub
+
+Pushing code to GitHub does not automatically update the installed APK.
+
+A new APK build and installation are required to distribute changes using this workflow.
+
+For supported JavaScript and UI updates without reinstalling an APK, Expo Updates can be configured separately.
+
+---
+
+**Project:** ApnaShop
+**Framework:** React Native with Expo
+**Build Service:** EAS Build
+**Platform:** Android
+**Build Profile:** Preview
+**Output:** APK

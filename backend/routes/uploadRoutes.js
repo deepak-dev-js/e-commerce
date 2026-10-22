@@ -94,7 +94,7 @@ router.post(
       const result = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
-            folder: `e-commerce/products/${category}`,
+            folder: `apnashop/products/${category}`,
             resource_type: "image",
           },
           (error, result) => {

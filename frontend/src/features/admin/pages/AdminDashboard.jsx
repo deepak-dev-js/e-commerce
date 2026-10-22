@@ -25,7 +25,7 @@ const AdminDashboard = () => {
       </h1>
 
       <p className="text-gray-500 mt-2">
-        Welcome to your e-commerce admin panel.
+        Welcome to your ApnaShop admin panel.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-8">

@@ -79,7 +79,7 @@ const OrderSummary = ({ shippingAddress }) => {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "Your E-Commerce Store",
+        name: "ApnaShop",
         description: "Purchase Payment",
         order_id: orderData.orderId,
 

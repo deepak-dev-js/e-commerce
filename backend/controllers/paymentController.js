@@ -14,19 +14,14 @@ export const createPaymentOrder = async (req, res) => {
       });
     }
 
-    const requiredAddressFields = [
-      "fullName",
-      "email",
-      "phone",
-      "addressLine",
-    ];
+    const requiredAddressFields = ["fullName", "email", "phone", "addressLine"];
 
     const validAddress =
       shippingAddress &&
       requiredAddressFields.every(
         (field) =>
           typeof shippingAddress[field] === "string" &&
-          shippingAddress[field].trim().length > 0
+          shippingAddress[field].trim().length > 0,
       );
 
     if (!validAddress) {
@@ -119,7 +114,7 @@ export const createPaymentOrder = async (req, res) => {
       totalAmount: totalPaise / 100,
       currency: "INR",
       paymentStatus: "pending",
-      orderStatus: "pending",
+      orderStatus: "placed",
     });
 
     try {
@@ -156,11 +151,8 @@ export const createPaymentOrder = async (req, res) => {
 
 export const verifyPayment = async (req, res) => {
   try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-    } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
 
     if (
       typeof razorpay_order_id !== "string" ||
@@ -245,7 +237,7 @@ export const verifyPayment = async (req, res) => {
           razorpayPaymentId: razorpay_payment_id,
         },
       },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedOrder) {
