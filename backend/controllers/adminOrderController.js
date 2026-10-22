@@ -27,7 +27,6 @@ export const updateOrderStatus = async (req, res) => {
     const { orderStatus } = req.body;
 
     const allowedStatuses = [
-      "placed",
       "confirmed",
       "packed",
       "shipped",

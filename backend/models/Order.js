@@ -107,7 +107,7 @@ const orderSchema = new mongoose.Schema(
 
     paymentStatus: {
       type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
+      enum: ["pending", "paid", "failed","cancel", "refunded"],
       default: "pending",
     },
 
@@ -123,7 +123,7 @@ const orderSchema = new mongoose.Schema(
         "delivered",
         "cancelled",
       ],
-      default: "placed",
+      default: "confirmed",
     },
   },
   { timestamps: true },

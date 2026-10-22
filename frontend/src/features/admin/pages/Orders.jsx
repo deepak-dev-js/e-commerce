@@ -198,7 +198,6 @@ const Orders = () => {
     }
     className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm capitalize outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
   >
-    <option value="placed">Placed</option>
     <option value="confirmed">Confirmed</option>
     <option value="packed">Packed</option>
     <option value="shipped">Shipped</option>

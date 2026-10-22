@@ -160,12 +160,16 @@ const MyOrders = () => {
                                         {order.orderStatus.replaceAll("_", " ")}
                                     </span>
 
-                                    {["placed", "confirmed", "packed"].includes(
-                                        order.orderStatus
-                                    ) && (
+                                    {["confirmed",
+                                        "packed",
+                                        "shipped",
+                                        "in_transit",
+                                        "out_for_delivery",].includes(
+                                            order.orderStatus
+                                        ) && (
                                             <button
                                                 onClick={() => handleCancelOrder(order._id)}
-                                                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                                                className="rounded-lg border border-red-200 ml-4 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
                                             >
                                                 Cancel Order
                                             </button>

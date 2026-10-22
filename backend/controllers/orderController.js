@@ -37,10 +37,7 @@ export const cancelMyOrder = async (req, res) => {
       });
     }
 
-    const cancellableStatuses = [
-      "confirmed",
-      "packed",
-    ];
+    const cancellableStatuses = ["confirmed", "packed"];
 
     if (!cancellableStatuses.includes(order.orderStatus)) {
       return res.status(400).json({
@@ -57,8 +54,9 @@ export const cancelMyOrder = async (req, res) => {
       });
     }
 
-
     order.orderStatus = "cancelled";
+    order.paymentStatus = "cancel";
+
     await order.save();
 
     return res.status(200).json({
@@ -75,5 +73,3 @@ export const cancelMyOrder = async (req, res) => {
     });
   }
 };
-
-
