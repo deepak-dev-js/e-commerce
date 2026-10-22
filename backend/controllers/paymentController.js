@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import razorpay from "../config/razorpay.js";
+import sendWhatsAppMessage from "../services/whatsappService.js";
 
 export const createPaymentOrder = async (req, res) => {
   try {
@@ -244,6 +245,28 @@ export const verifyPayment = async (req, res) => {
       return res.status(409).json({
         message: "Order status changed. Please refresh and check your order.",
       });
+    }
+
+    try {
+      // const phone = updatedOrder.shippingAddress.phone;
+      const phone = "917869575652";
+
+      const message =
+        `Hi ${updatedOrder.shippingAddress.fullName}, ` +
+        `your ApnaShop order has been confirmed successfully! ` +
+        `Order ID: ${updatedOrder._id}. ` +
+        `Total: ₹${updatedOrder.totalAmount}.`;
+
+      const sent = await sendWhatsAppMessage(phone, message);
+
+      if (!sent) {
+        console.error(
+          "WhatsApp order confirmation could not be sent:",
+          updatedOrder._id,
+        );
+      }
+    } catch (error) {
+      console.error("WhatsApp order confirmation failed:", error);
     }
 
     return res.status(200).json({
