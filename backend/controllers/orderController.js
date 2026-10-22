@@ -38,9 +38,7 @@ export const cancelMyOrder = async (req, res) => {
     }
 
     const cancellableStatuses = [
-      "placed",
       "confirmed",
-      "processing",
       "packed",
     ];
 

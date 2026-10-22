@@ -160,7 +160,7 @@ const MyOrders = () => {
                                         {order.orderStatus.replaceAll("_", " ")}
                                     </span>
 
-                                    {["placed", "confirmed", "processing", "packed"].includes(
+                                    {["placed", "confirmed", "packed"].includes(
                                         order.orderStatus
                                     ) && (
                                             <button

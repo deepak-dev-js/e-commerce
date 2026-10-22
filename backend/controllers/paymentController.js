@@ -233,7 +233,7 @@ export const verifyPayment = async (req, res) => {
       {
         $set: {
           paymentStatus: "paid",
-          orderStatus: "processing",
+          orderStatus: "confirmed",
           razorpayPaymentId: razorpay_payment_id,
         },
       },
