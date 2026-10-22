@@ -114,7 +114,7 @@ export const createPaymentOrder = async (req, res) => {
       totalAmount: totalPaise / 100,
       currency: "INR",
       paymentStatus: "pending",
-      orderStatus: "placed",
+      orderStatus: "awaiting_payment",
     });
 
     try {
