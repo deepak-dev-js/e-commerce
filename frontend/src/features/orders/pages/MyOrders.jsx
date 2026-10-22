@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -6,15 +7,38 @@ const MyOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [cancellingOrderId, setCancellingOrderId] = useState(null);
 
     const handleCancelOrder = async (orderId) => {
-        const confirmed = window.confirm(
-            "Are you sure you want to cancel this order?"
-        );
+        const result = await Swal.fire({
+            title: "Cancel Order?",
+            text: "Are you sure you want to cancel this order?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, cancel order",
+            cancelButtonText: "Keep Order",
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#6b7280",
+            reverseButtons: true,
+            focusCancel: true,
+        });
 
-        if (!confirmed) return;
+        if (!result.isConfirmed) return;
 
         try {
+            setCancellingOrderId(orderId);
+
+            Swal.fire({
+                title: "Cancelling Order...",
+                text: "Please wait.",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
             const response = await fetch(
                 `${API_URL}/api/orders/${orderId}/cancel`,
                 {
@@ -34,11 +58,29 @@ const MyOrders = () => {
                     order._id === orderId ? data.order : order
                 )
             );
+
+            await Swal.fire({
+                title: "Order Cancelled!",
+                text: "Your order has been cancelled successfully.",
+                icon: "success",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#2563eb",
+            });
         } catch (error) {
             console.error("Failed to cancel order:", error);
-            window.alert(error.message || "Failed to cancel order.");
+
+            await Swal.fire({
+                title: "Cancellation Failed",
+                text: error.message || "Failed to cancel order.",
+                icon: "error",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#2563eb",
+            });
+        } finally {
+            setCancellingOrderId(null);
         }
     };
+
 
     useEffect(() => {
         const fetchMyOrders = async () => {
@@ -160,18 +202,45 @@ const MyOrders = () => {
                                         {order.orderStatus.replaceAll("_", " ")}
                                     </span>
 
-                                    {["confirmed",
+                                    {[
+                                        "confirmed",
                                         "packed",
                                         "shipped",
                                         "in_transit",
-                                        "out_for_delivery",].includes(
-                                            order.orderStatus
-                                        ) && (
+                                        "out_for_delivery",
+                                    ].includes(order.orderStatus) && (
                                             <button
                                                 onClick={() => handleCancelOrder(order._id)}
-                                                className="rounded-lg border border-red-200 ml-4 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                                                disabled={cancellingOrderId === order._id}
+                                                className="ml-4 inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
-                                                Cancel Order
+                                                {cancellingOrderId === order._id && (
+                                                    <svg
+                                                        className="h-4 w-4 animate-spin"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <circle
+                                                            className="opacity-25"
+                                                            cx="12"
+                                                            cy="12"
+                                                            r="10"
+                                                            stroke="currentColor"
+                                                            strokeWidth="4"
+                                                        />
+
+                                                        <path
+                                                            className="opacity-75"
+                                                            fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                                        />
+                                                    </svg>
+                                                )}
+
+                                                {cancellingOrderId === order._id
+                                                    ? "Cancelling..."
+                                                    : "Cancel Order"}
                                             </button>
                                         )}
                                 </div>
