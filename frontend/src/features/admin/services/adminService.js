@@ -25,7 +25,7 @@ return data;
 };
 
 export const createProduct = async (productData) => {
-const response = await fetch(`${API_URL}/api/products`, {
+const response = await fetch(`${API_URL}/api/admin/add-product`, {
 method: "POST",
 headers: {
 "Content-Type": "application/json",

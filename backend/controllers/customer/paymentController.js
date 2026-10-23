@@ -1,10 +1,10 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
-import Product from "../models/Product.js";
-import Order from "../models/Order.js";
-import razorpay from "../config/razorpay.js";
-import sendEmail from "../services/emailService.js";
-import createOrderEmailTemplate from "../templates/orderEmailTemplate.js";
+import Product from "../../models/Product.js";
+import Order from "../../models/Order.js";
+import razorpay from "../../config/razorpay.js";
+import sendEmail from "../../services/emailService.js";
+import createOrderEmailTemplate from "../../templates/orderEmailTemplate.js";
 
 export const createPaymentOrder = async (req, res) => {
   try {

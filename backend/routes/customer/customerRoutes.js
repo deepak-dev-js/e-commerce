@@ -1,10 +1,10 @@
 import express from "express";
-import { getMyProfile } from "../../controllers/userController.js";
-import { cancelMyOrder, getMyOrders } from "../../controllers/orderController.js";
+import { getMyProfile } from "../../controllers/customer/profileController.js";
+import { cancelMyOrder, getMyOrders } from "../../controllers/customer/orderController.js";
 import {
   createPaymentOrder,
   verifyPayment,
-} from "../../controllers/paymentController.js";
+} from "../../controllers/customer/paymentController.js";
 import {protect} from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
