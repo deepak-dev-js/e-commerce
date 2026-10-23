@@ -31,7 +31,7 @@ const MyOrders = () => {
             });
 
             const response = await fetch(
-                `${API_URL}/api/orders/${orderId}/cancel`,
+                `${API_URL}/api/customer/${orderId}/cancel`,
                 {
                     method: "PATCH",
                     credentials: "include",
@@ -72,7 +72,7 @@ const MyOrders = () => {
     useEffect(() => {
         const fetchMyOrders = async () => {
             try {
-                const response = await fetch(`${API_URL}/api/orders/my-orders`, {
+                const response = await fetch(`${API_URL}/api/customer/orders`, {
                     credentials: "include",
                 });
 

@@ -151,44 +151,72 @@ const Navbar = () => {
             <User />
           </button>
 
+
           {isProfileOpen && (
-            <div className="absolute right-0 top-8 z-50 w-40 rounded-md bg-white shadow-lg border border-gray-100">
-              <NavLink
-                to="/profile"
-                onClick={() => setIsProfileOpen(false)}
-                className="block px-4 py-3 text-sm hover:bg-gray-100"
-              >
-                My Profile
-              </NavLink>
-
-              <NavLink
-                to="/orders"
-                onClick={() => setIsProfileOpen(false)}
-                className="block px-4 py-3 text-sm hover:bg-gray-100"
-              >
-                Orders
-              </NavLink>
-
+            <div className="absolute right-0 top-8 z-50 w-40 overflow-hidden rounded-md border border-gray-100 bg-white shadow-lg">
               {isAuthenticated ? (
-                <button
-                  onClick={() => {
-                    setIsProfileOpen(false);
-                    handleLogout();
-                  }}
-                  className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-gray-100"
-                >
-                  Logout
-                </button>
-              ) : (<button
-                onClick={() => {
-                  navigate("/login");
-                }}
-                className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-gray-100"
-              >
-                Login
-              </button>)}
+                <>
+                  <NavLink
+                    to="/my-profile"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="block px-4 py-3 text-sm hover:bg-gray-100"
+                  >
+                    My Profile
+                  </NavLink>
+
+                  <NavLink
+                    to="/my-orders"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="block px-4 py-3 text-sm hover:bg-gray-100"
+                  >
+                    My Orders
+                  </NavLink>
+
+                   <NavLink
+                    to="/wishlist"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="block px-4 py-3 text-sm hover:bg-gray-100"
+                  >
+                    Wishlist
+                  </NavLink>
+
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      handleLogout();
+                    }}
+                    className="block w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      navigate("/login");
+                    }}
+                    className="block w-full px-4 py-3 text-left text-sm hover:bg-gray-100"
+                  >
+                    Login
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      navigate("/register");
+                    }}
+                    className="block w-full px-4 py-3 text-left text-sm hover:bg-gray-100"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
             </div>
           )}
+
+
         </div>
 
         {/* Mobile Menu Button */}
@@ -235,16 +263,6 @@ const Navbar = () => {
                 className={navLinkClass}
               >
                 Home
-              </NavLink>
-            </li>
-
-            <li>
-              <NavLink
-                to="/my-orders"
-                onClick={() => setIsMenuOpen(false)}
-                className={navLinkClass}
-              >
-                My Orders
               </NavLink>
             </li>
 

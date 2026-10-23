@@ -1,7 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const createPaymentOrder = async (orderData) => {
-  const response = await fetch(`${API_URL}/api/payment/create-order`, {
+  const response = await fetch(`${API_URL}/api/customer/create-payment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -20,7 +20,7 @@ export const createPaymentOrder = async (orderData) => {
 };
 
 export const verifyPayment = async (paymentData) => {
-  const response = await fetch(`${API_URL}/api/payment/verify`, {
+  const response = await fetch(`${API_URL}/api/customer/verify-payment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
