@@ -69,6 +69,8 @@ export const updateOrderStatus = async (req, res) => {
 
     const { fullName, email, phone } = order.shippingAddress;
 
+    console.log(order)
+
     const message =
       `Hi ${fullName}, your ApnaShop order status has been updated to ` +
       `${orderStatus.replaceAll("_", " ")}. ` +
