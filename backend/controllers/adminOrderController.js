@@ -67,31 +67,17 @@ export const updateOrderStatus = async (req, res) => {
     order.orderStatus = orderStatus;
     await order.save();
 
-    const { fullName, email, phone } = order.shippingAddress;
+    const { fullName, phone } = order.shippingAddress;
+    const whatsappPhone = `917869575652`;
+    const email = "deepakgupta757600@gmail.com";
 
-    console.log(order)
+    console.log(order);
 
     const message =
       `Hi ${fullName}, your ApnaShop order status has been updated to ` +
       `${orderStatus.replaceAll("_", " ")}. ` +
       `Order ID: ${order._id}. ` +
       `Total: ₹${order.totalAmount}.`;
-
-    // Send WhatsApp notification.
-    try {
-      if (phone) {
-        const sent = await sendWhatsAppMessage(phone, message);
-
-        if (!sent) {
-          console.error(
-            "WhatsApp order status notification failed:",
-            order._id,
-          );
-        }
-      }
-    } catch (error) {
-      console.error("WhatsApp order status notification failed:", error);
-    }
 
     // Send email notification.
     try {
@@ -134,7 +120,7 @@ export const updatePaymentStatus = async (req, res) => {
   try {
     const { paymentStatus } = req.body;
 
-    if (!["refund_processing", "refunded"].includes(paymentStatus)) {
+    if (paymentStatus !== "refunded") {
       return res.status(400).json({
         success: false,
         message: "Invalid payment status.",
@@ -152,8 +138,7 @@ export const updatePaymentStatus = async (req, res) => {
 
     if (
       order.orderStatus !== "cancelled" ||
-      order.paymentStatus !== "refund_processing" ||
-      paymentStatus !== "refunded"
+      order.paymentStatus !== "refund_processing"
     ) {
       return res.status(400).json({
         success: false,
@@ -163,6 +148,34 @@ export const updatePaymentStatus = async (req, res) => {
 
     order.paymentStatus = "refunded";
     await order.save();
+
+    const { fullName } = order.shippingAddress;
+
+    const email = "deepakgupta757600@gmail.com"
+
+    try {
+      if (email) {
+        await sendEmail({
+          to: email,
+          subject: "ApnaShop Refund Confirmation",
+          text:
+            `Hi ${fullName}, your refund has been processed for order ` +
+            `${order._id}. Order total: ₹${order.totalAmount}.`,
+          html: `
+            <h2>Refund Confirmation</h2>
+            <p>Hi ${fullName},</p>
+            <p>Your ApnaShop order refund has been processed.</p>
+            <p><strong>Order ID:</strong> ${order._id}</p>
+            <p><strong>Refund Amount:</strong> ₹${order.totalAmount}</p>
+            <p>The time taken for the amount to reflect in your account
+            depends on your payment provider.</p>
+            <p>Thank you for shopping with ApnaShop.</p>
+          `,
+        });
+      }
+    } catch (error) {
+      console.error("Refund confirmation email failed:", error);
+    }
 
     return res.status(200).json({
       success: true,

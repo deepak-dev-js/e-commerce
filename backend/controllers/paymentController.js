@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import razorpay from "../config/razorpay.js";
-import sendWhatsAppMessage from "../services/whatsappService.js";
+import sendEmail from "../services/emailService.js";
 
 export const createPaymentOrder = async (req, res) => {
   try {
@@ -247,26 +247,33 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
+    const email = "deepakgupta757600@gmail.com";
+
     try {
-      // const phone = updatedOrder.shippingAddress.phone;
-      const phone = "917869575652";
-
-      const message =
-        `Hi ${updatedOrder.shippingAddress.fullName}, ` +
-        `your ApnaShop order has been confirmed successfully! ` +
-        `Order ID: ${updatedOrder._id}. ` +
-        `Total: ₹${updatedOrder.totalAmount}.`;
-
-      const sent = await sendWhatsAppMessage(phone, message);
-
-      if (!sent) {
-        console.error(
-          "WhatsApp order confirmation could not be sent:",
-          updatedOrder._id,
-        );
-      }
+      await sendEmail({
+        to: email,
+        subject: "ApnaShop Order Confirmation",
+        text:
+          `Hi ${fullName}, your payment was successful! ` +
+          `Your ApnaShop order has been confirmed. ` +
+          `Order ID: ${order._id}. Total: ₹${order.totalAmount}.`,
+        html: `
+        <h2>Order Confirmation</h2>
+        <p>Hi ${fullName},</p>
+        <p>
+          Thank you for shopping with ApnaShop!
+          Your payment was successful and your order has been confirmed.
+        </p>
+        <p><strong>Order ID:</strong> ${order._id}</p>
+        <p><strong>Payment Status:</strong> Paid</p>
+        <p><strong>Order Status:</strong> Confirmed</p>
+        <p><strong>Total Amount:</strong> ₹${order.totalAmount}</p>
+        <p>We will notify you when your order status changes.</p>
+        <p>Thank you for choosing ApnaShop!</p>
+      `,
+      });
     } catch (error) {
-      console.error("WhatsApp order confirmation failed:", error);
+      console.error("Order confirmation email failed:", error);
     }
 
     return res.status(200).json({
