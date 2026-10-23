@@ -54,3 +54,25 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+
+
+native/
+├── assets/                 # App images, icons, splash assets
+├── scripts/                # Utility scripts
+├── src/
+│   ├── app/                # Expo Router screens and routes
+│   │   ├── (auth)/         # Login, register
+│   │   ├── (tabs)/         # Home, explore, cart, profile, tab layout
+│   │   ├── product/        # Product detail route: [id].tsx
+│   │   └── _layout.tsx     # Root navigation/layout
+│   ├── components/         # Shared UI components
+│   │   └── ui/
+│   ├── constants/          # Theme and shared constants
+│   ├── context/            # AuthContext, CartContext
+│   ├── hooks/              # Theme/color-scheme hooks
+│   └── global.css
+├── app.json                # Expo app configuration
+├── eas.json                # EAS build configuration
+├── package.json            # Dependencies and scripts
+└── tsconfig.json           # TypeScript configuration

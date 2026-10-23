@@ -5,7 +5,11 @@ import sendEmail from "../../services/emailService.js";
 
 export const getMe = async (req, res) => {
   try {
-    const token = req.cookies?.token;
+    const authHeader = req.headers.authorization;
+
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : req.cookies?.token;
 
     if (!token) {
       return res.status(401).json({
@@ -119,6 +123,7 @@ ApnaShop Team`,
     return res.status(201).json({
       success: true,
       message: "Registration successful",
+      token: token,
       user: {
         id: user._id,
         name: user.name,
@@ -211,6 +216,7 @@ ApnaShop Team`,
     return res.status(200).json({
       success: true,
       message: "Login successful",
+      token: token,
       user: {
         id: user._id,
         name: user.name,

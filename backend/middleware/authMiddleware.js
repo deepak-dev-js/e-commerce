@@ -3,10 +3,16 @@ import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    const authHeader = req.headers.authorization;
+
+    const token =
+      authHeader?.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : req.cookies?.token;
 
     if (!token) {
       return res.status(401).json({
+        success: false,
         message: "Not authorized. Please log in.",
       });
     }
@@ -17,6 +23,7 @@ export const protect = async (req, res, next) => {
 
     if (!user) {
       return res.status(401).json({
+        success: false,
         message: "User not found. Please log in again.",
       });
     }
@@ -28,6 +35,7 @@ export const protect = async (req, res, next) => {
     console.error("Authentication error:", error);
 
     return res.status(401).json({
+      success: false,
       message: "Invalid or expired token. Please log in again.",
     });
   }
