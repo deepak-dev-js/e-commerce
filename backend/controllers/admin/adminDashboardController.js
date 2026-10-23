@@ -1,6 +1,6 @@
-import Product from "../models/Product.js";
-import Order from "../models/Order.js";
-import User from "../models/User.js";
+import Product from "../../models/Product.js";
+import Order from "../../models/Order.js";
+import User from "../../models/User.js";
 
 export const getDashboardStats = async (req, res) => {
   try {

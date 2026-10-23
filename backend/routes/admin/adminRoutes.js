@@ -1,7 +1,7 @@
 import express from "express";
 import { protect } from "../../middleware/authMiddleware.js";
 import adminOnly from "../../middleware/adminMiddleware.js";
-import { getDashboardStats } from "../../controllers/adminDashboardController.js";
+import { getDashboardStats } from "../../controllers/admin/adminDashboardController.js";
 import { updatePaymentStatus } from "../../controllers/admin/adminOrderController.js";
 import multer from "multer";
 import { uploadProductImage } from "../../controllers/admin/uploadProductController.js";
