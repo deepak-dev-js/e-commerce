@@ -4,6 +4,7 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import razorpay from "../config/razorpay.js";
 import sendEmail from "../services/emailService.js";
+import createOrderEmailTemplate from "../templates/orderEmailTemplate.js";
 
 export const createPaymentOrder = async (req, res) => {
   try {
@@ -247,31 +248,32 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
+    const { fullName } = updatedOrder.shippingAddress;
+
     const email = "deepakgupta757600@gmail.com";
 
     try {
-      await sendEmail({
-        to: email,
-        subject: "ApnaShop Order Confirmation",
-        text:
-          `Hi ${fullName}, your payment was successful! ` +
-          `Your ApnaShop order has been confirmed. ` +
-          `Order ID: ${order._id}. Total: ₹${order.totalAmount}.`,
-        html: `
-        <h2>Order Confirmation</h2>
-        <p>Hi ${fullName},</p>
-        <p>
-          Thank you for shopping with ApnaShop!
-          Your payment was successful and your order has been confirmed.
-        </p>
-        <p><strong>Order ID:</strong> ${order._id}</p>
-        <p><strong>Payment Status:</strong> Paid</p>
-        <p><strong>Order Status:</strong> Confirmed</p>
-        <p><strong>Total Amount:</strong> ₹${order.totalAmount}</p>
-        <p>We will notify you when your order status changes.</p>
-        <p>Thank you for choosing ApnaShop!</p>
-      `,
-      });
+
+      if (email) {
+        const html = createOrderEmailTemplate({
+          fullName,
+          order: updatedOrder,
+          status: "confirmed",
+          logoUrl: "", // Optional: apne logo ka public HTTPS URL yahan do
+          storeUrl: "https://apnashop-online.vercel.app",
+        });
+
+        await sendEmail({
+          to: email,
+          subject: "ApnaShop - Order Confirmation",
+          text:
+            `Hi ${fullName}, your payment was successful! ` +
+            `Your ApnaShop order is confirmed. ` +
+            `Order ID: ${updatedOrder._id}. ` +
+            `Total: ₹${updatedOrder.totalAmount}.`,
+          html,
+        });
+      }
     } catch (error) {
       console.error("Order confirmation email failed:", error);
     }

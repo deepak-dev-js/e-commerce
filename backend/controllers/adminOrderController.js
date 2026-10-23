@@ -1,6 +1,7 @@
 import Order from "../models/Order.js";
 import sendEmail from "../services/emailService.js";
 import sendWhatsAppMessage from "../services/whatsappService.js";
+import createOrderEmailTemplate from "../templates/orderEmailTemplate.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -67,12 +68,6 @@ export const updateOrderStatus = async (req, res) => {
     order.orderStatus = orderStatus;
     await order.save();
 
-    const { fullName, phone } = order.shippingAddress;
-    const whatsappPhone = `917869575652`;
-    const email = "deepakgupta757600@gmail.com";
-
-    console.log(order);
-
     const message =
       `Hi ${fullName}, your ApnaShop order status has been updated to ` +
       `${orderStatus.replaceAll("_", " ")}. ` +
@@ -80,25 +75,34 @@ export const updateOrderStatus = async (req, res) => {
       `Total: ₹${order.totalAmount}.`;
 
     // Send email notification.
+    const { fullName } = updatedOrder.shippingAddress;
+
+    const email = "deepakgupta757600@gmail.com";
+
     try {
+
       if (email) {
+        const html = createOrderEmailTemplate({
+          fullName,
+          order: updatedOrder,
+          status: "confirmed",
+          logoUrl: "", // Optional: apne logo ka public HTTPS URL yahan do
+          storeUrl: "https://apnashop-online.vercel.app",
+        });
+
         await sendEmail({
           to: email,
-          subject: `ApnaShop Order Update - ${orderStatus.replaceAll("_", " ")}`,
-          text: message,
-          html: `
-            <h2>Order Status Update</h2>
-            <p>Hi ${fullName},</p>
-            <p>Your ApnaShop order status has been updated.</p>
-            <p><strong>Order ID:</strong> ${order._id}</p>
-            <p><strong>Order Status:</strong> ${orderStatus.replaceAll("_", " ")}</p>
-            <p><strong>Total:</strong> ₹${order.totalAmount}</p>
-            <p>Thank you for shopping with ApnaShop!</p>
-          `,
+          subject: "ApnaShop - Order Confirmation",
+          text:
+            `Hi ${fullName}, your payment was successful! ` +
+            `Your ApnaShop order is confirmed. ` +
+            `Order ID: ${updatedOrder._id}. ` +
+            `Total: ₹${updatedOrder.totalAmount}.`,
+          html,
         });
       }
     } catch (error) {
-      console.error("Order status email notification failed:", error);
+      console.error("Order confirmation email failed:", error);
     }
 
     return res.status(200).json({
@@ -149,32 +153,34 @@ export const updatePaymentStatus = async (req, res) => {
     order.paymentStatus = "refunded";
     await order.save();
 
-    const { fullName } = order.shippingAddress;
+    const { fullName } = updatedOrder.shippingAddress;
 
-    const email = "deepakgupta757600@gmail.com"
+    const email = "deepakgupta757600@gmail.com";
 
     try {
+
       if (email) {
+        const html = createOrderEmailTemplate({
+          fullName,
+          order: updatedOrder,
+          status: "confirmed",
+          logoUrl: "", // Optional: apne logo ka public HTTPS URL yahan do
+          storeUrl: "https://apnashop-online.vercel.app",
+        });
+
         await sendEmail({
           to: email,
-          subject: "ApnaShop Refund Confirmation",
+          subject: "ApnaShop - Order Confirmation",
           text:
-            `Hi ${fullName}, your refund has been processed for order ` +
-            `${order._id}. Order total: ₹${order.totalAmount}.`,
-          html: `
-            <h2>Refund Confirmation</h2>
-            <p>Hi ${fullName},</p>
-            <p>Your ApnaShop order refund has been processed.</p>
-            <p><strong>Order ID:</strong> ${order._id}</p>
-            <p><strong>Refund Amount:</strong> ₹${order.totalAmount}</p>
-            <p>The time taken for the amount to reflect in your account
-            depends on your payment provider.</p>
-            <p>Thank you for shopping with ApnaShop.</p>
-          `,
+            `Hi ${fullName}, your payment was successful! ` +
+            `Your ApnaShop order is confirmed. ` +
+            `Order ID: ${updatedOrder._id}. ` +
+            `Total: ₹${updatedOrder.totalAmount}.`,
+          html,
         });
       }
     } catch (error) {
-      console.error("Refund confirmation email failed:", error);
+      console.error("Order confirmation email failed:", error);
     }
 
     return res.status(200).json({
