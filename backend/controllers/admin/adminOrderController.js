@@ -64,17 +64,9 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    // Update the order status.
     order.orderStatus = orderStatus;
     await order.save();
 
-    const message =
-      `Hi ${fullName}, your ApnaShop order status has been updated to ` +
-      `${orderStatus.replaceAll("_", " ")}. ` +
-      `Order ID: ${order._id}. ` +
-      `Total: ₹${order.totalAmount}.`;
-
-    // Send email notification.
     const { fullName } = updatedOrder.shippingAddress;
 
     const email = "deepakgupta757600@gmail.com";
