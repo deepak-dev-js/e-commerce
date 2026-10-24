@@ -1,7 +1,7 @@
-import Order from "../../models/Order.js";
-import sendEmail from "../../services/emailService.js";
-import sendWhatsAppMessage from "../../services/whatsappService.js";
-import createOrderEmailTemplate from "../../templates/orderEmailTemplate.js";
+import Order from "../models/Order.js";
+import sendEmail from "../services/emailService.js";
+import sendWhatsAppMessage from "../services/whatsappService.js";
+import createOrderEmailTemplate from "../templates/orderEmailTemplate.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -64,19 +64,19 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
+    // Update the order status.
     order.orderStatus = orderStatus;
     await order.save();
 
-    const { fullName } = updatedOrder.shippingAddress;
+    const fullName = order.shippingAddress?.fullName || "Customer";
 
     const email = "deepakgupta757600@gmail.com";
 
     try {
-
       if (email) {
         const html = createOrderEmailTemplate({
           fullName,
-          order: updatedOrder,
+          order: order,
           status: "confirmed",
           logoUrl: "", // Optional: apne logo ka public HTTPS URL yahan do
           storeUrl: "https://apnashop-online.vercel.app",
@@ -88,8 +88,8 @@ export const updateOrderStatus = async (req, res) => {
           text:
             `Hi ${fullName}, your payment was successful! ` +
             `Your ApnaShop order is confirmed. ` +
-            `Order ID: ${updatedOrder._id}. ` +
-            `Total: ₹${updatedOrder.totalAmount}.`,
+            `Order ID: ${order._id}. ` +
+            `Total: ₹${order.totalAmount}.`,
           html,
         });
       }
@@ -145,16 +145,15 @@ export const updatePaymentStatus = async (req, res) => {
     order.paymentStatus = "refunded";
     await order.save();
 
-    const { fullName } = updatedOrder.shippingAddress;
+    const { fullName } = order.shippingAddress;
 
     const email = "deepakgupta757600@gmail.com";
 
     try {
-
       if (email) {
         const html = createOrderEmailTemplate({
           fullName,
-          order: updatedOrder,
+          order: order,
           status: "confirmed",
           logoUrl: "", // Optional: apne logo ka public HTTPS URL yahan do
           storeUrl: "https://apnashop-online.vercel.app",
@@ -166,8 +165,8 @@ export const updatePaymentStatus = async (req, res) => {
           text:
             `Hi ${fullName}, your payment was successful! ` +
             `Your ApnaShop order is confirmed. ` +
-            `Order ID: ${updatedOrder._id}. ` +
-            `Total: ₹${updatedOrder.totalAmount}.`,
+            `Order ID: ${order._id}. ` +
+            `Total: ₹${order.totalAmount}.`,
           html,
         });
       }
