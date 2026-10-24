@@ -17,10 +17,14 @@ import Checkout from "../features/checkout/pages/Checkout";
 import OrderSuccess from "../features/checkout/pages/OrderSuccess";
 import MyOrders from "../features/orders/pages/MyOrders";
 import Profile from "../features/customer/pages/Profile";
+import ForgotPassword from "../features/auth/pages/ForgotPassword";
+import ResetPassword from "../features/auth/pages/ResetPassword";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 

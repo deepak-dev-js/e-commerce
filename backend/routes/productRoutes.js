@@ -7,11 +7,8 @@ const router = express.Router();
 // GET: Fetch all products
 router.get("/", async (req, res) => {
   try {
-    console.log("Fetching products from MongoDB Atlas...");
 
     const products = await Product.find();
-
-    console.log("Products fetched:", products.length);
 
     res.status(200).json({
       success: true,

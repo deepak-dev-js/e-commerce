@@ -165,6 +165,14 @@ export default function LoginScreen() {
               </View>
             </View>
 
+            <View style={styles.forgotPasswordContainer}>
+              <Link href="/(auth)/forgot-password" asChild>
+                <Text style={styles.forgotPasswordText}>
+                  Forgot Password?
+                </Text>
+              </Link>
+            </View>
+
             {message ? (
               <Text accessibilityRole="alert" style={styles.error}>
                 {message}
@@ -217,6 +225,17 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  forgotPasswordContainer: {
+    alignItems: 'flex-end',
+    marginTop: -8,
+    marginBottom: 20,
+  },
+
+  forgotPasswordText: {
+    color: '#2563eb',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#ffffff',

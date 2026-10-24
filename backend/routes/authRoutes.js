@@ -1,5 +1,5 @@
 import express from "express";
-import { getMe, loginUser, logoutUser, registerUser } from "../controllers/auth/authController.js";
+import { forgotPassword, getMe, loginUser, logoutUser, registerUser, resetPassword } from "../controllers/auth/authController.js";
 import { googleLogin } from "../controllers/auth/googleAuthController.js";
 
 const router = express.Router();
@@ -9,5 +9,7 @@ router.get("/me", getMe);
 router.post("/login", loginUser);
 router.post("/google", googleLogin);
 router.post("/logout", logoutUser);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 export default router;
