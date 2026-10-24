@@ -1,7 +1,6 @@
-import Order from "../models/Order.js";
-import sendEmail from "../services/emailService.js";
-import sendWhatsAppMessage from "../services/whatsappService.js";
-import createOrderEmailTemplate from "../templates/orderEmailTemplate.js";
+import Order from "../../models/Order.js";
+import sendEmail from "../../services/emailService.js";
+import createOrderEmailTemplate from "../../templates/orderEmailTemplate.js";
 
 export const getAllOrders = async (req, res) => {
   try {
