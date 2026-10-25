@@ -248,12 +248,31 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
+    // Increment purchase count only after payment is verified.
+    try {
+      const purchaseUpdates = updatedOrder.items.map((item) => ({
+        updateOne: {
+          filter: { _id: item.product },
+          update: {
+            $inc: {
+              purchaseCount: item.quantity,
+            },
+          },
+        },
+      }));
+
+      if (purchaseUpdates.length > 0) {
+        await Product.bulkWrite(purchaseUpdates);
+      }
+    } catch (error) {
+      console.error("Failed to update product purchase counts:", error);
+    }
+
     const { fullName } = updatedOrder.shippingAddress;
 
     const email = "deepakgupta757600@gmail.com";
 
     try {
-
       if (email) {
         const html = createOrderEmailTemplate({
           fullName,
