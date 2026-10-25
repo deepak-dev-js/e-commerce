@@ -5,7 +5,7 @@ import ProductList from "../features/products/components/ProductList";
 const Home = () => {
   return (
     <main>
-      <Hero />
+      {/* <Hero /> */}
 
        <ProductList />
     </main>
