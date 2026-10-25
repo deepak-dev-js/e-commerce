@@ -20,6 +20,23 @@ interface AuthResponse {
   user?: User;
 }
 
+export interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+  token?: string;
+  user?: User;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  code?: string;
+  email?: string;
+  token?: string;
+  user?: User;
+}
+
+
 const TOKEN_KEY = 'apnashop_token';
 
 export const getToken = async () => {
@@ -34,11 +51,13 @@ export const removeToken = async () => {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
 };
 
+
+
 export const registerUser = async (formData: {
   name: string;
   email: string;
   password: string;
-}) => {
+}): Promise<RegisterResponse> => {
   const response = await fetch(`${API_URL}/api/auth/register`, {
     method: 'POST',
     headers: {
@@ -47,14 +66,44 @@ export const registerUser = async (formData: {
     body: JSON.stringify(formData),
   });
 
-  const data: AuthResponse = await response.json();
+  const data: RegisterResponse = await response.json();
 
-  console.log(data)
-
-  if (!response.ok || !data.success || !data.token || !data.user) {
+  if (!response.ok || !data.success) {
     throw new Error(data.message || 'Registration failed.');
   }
 
+  return data;
+};
+
+export const verifyEmail = async (
+  email: string,
+  otp: string
+): Promise<User> => {
+  const response = await fetch(`${API_URL}/api/auth/verify-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      otp,
+    }),
+  });
+
+  const data: VerifyEmailResponse = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || 'Email verification failed.');
+  }
+
+  // OTP verification ke baad backend ko JWT aur user return karna hoga.
+  if (!data.token || !data.user) {
+    throw new Error(
+      'Email verified, but authentication token or user was not returned by the server.'
+    );
+  }
+
+  // Token persist karo.
   await saveToken(data.token);
 
   return data.user;

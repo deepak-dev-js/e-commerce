@@ -11,18 +11,21 @@ import {
   loginUser as loginUserService,
   registerUser as registerUserService,
   logoutUser as logoutUserService,
+  verifyEmail as verifyEmailService,
   type User,
+  type RegisterResponse,
 } from '@/services/authService';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
   register: (
     name: string,
     email: string,
     password: string
-  ) => Promise<void>;
+  ) => Promise<RegisterResponse>;
+  login: (email: string, password: string) => Promise<void>;
+  verifyEmail: (email: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -58,22 +61,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const authenticatedUser = await loginUserService({ email, password });
-    setUser(authenticatedUser);
-  };
-
   const register = async (
     name: string,
     email: string,
     password: string
-  ) => {
-    const authenticatedUser = await registerUserService({
+  ): Promise<RegisterResponse> => {
+    const response = await registerUserService({
       name,
       email,
       password,
     });
 
+    if (response.token && response.user) {
+      setUser(response.user);
+    }
+
+    return response;
+  };
+
+  const login = async (email: string, password: string) => {
+    const authenticatedUser = await loginUserService({ email, password });
+    setUser(authenticatedUser);
+  };
+
+
+
+  const verifyEmail = async (email: string, otp: string) => {
+    const authenticatedUser = await verifyEmailService(email, otp);
+
+    // Global authentication state update.
     setUser(authenticatedUser);
   };
 
@@ -84,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout }}
+      value={{ user, loading, login, register, verifyEmail, logout }}
     >
       {children}
     </AuthContext.Provider>

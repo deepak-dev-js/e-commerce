@@ -24,38 +24,53 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { register } = useAuth();
+const { register } = useAuth();
 
-  const handleSubmit = async () => {
-    if (!name.trim() || !email.trim() || !password) {
-      setMessage('Please fill in all fields.');
+const handleSubmit = async () => {
+  if (!name.trim() || !email.trim() || !password) {
+    setMessage('Please fill in all fields.');
+    return;
+  }
+
+  if (password.length < 8) {
+    setMessage('Password must be at least 8 characters.');
+    return;
+  }
+
+  setMessage('');
+  setLoading(true);
+
+  try {
+    const res = await register(
+      name.trim(),
+      email.trim().toLowerCase(),
+      password
+    );
+
+    if (res.code === 'EMAIL_VERIFICATION_REQUIRED') {
+      router.replace({
+        pathname: '/(auth)/verify-email',
+        params: {
+          email: email.trim().toLowerCase(),
+        },
+      });
+
       return;
     }
 
-    if (password.length < 8) {
-      setMessage('Password must be at least 8 characters.');
-      return;
-    }
+    setMessage('Unexpected registration response.');
+  } catch (error) {
+    console.error('Registration failed:', error);
 
-    setMessage('');
-    setLoading(true);
-
-    try {
-      let res = await register(name.trim(), email.trim(), password);
-
-      router.replace('/(tabs)');
-    } catch (error) {
-      console.error('Registration failed:', error);
-
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Registration failed. Please try again.',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    setMessage(
+      error instanceof Error
+        ? error.message
+        : 'Registration failed. Please try again.'
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>

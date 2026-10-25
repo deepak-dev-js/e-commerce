@@ -228,29 +228,32 @@ export const verifyEmail = async (req, res) => {
     await user.save();
 
     // Generate JWT
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+const token = jwt.sign(
+  { userId: user._id },
+  process.env.JWT_SECRET,
+  { expiresIn: "1d" }
+);
 
-    // Set HTTP-only authentication cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+// Set HTTP-only cookie for web.
+res.cookie("token", token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 24 * 60 * 60 * 1000,
+  path: "/",
+});
 
-    return res.status(200).json({
-      success: true,
-      message: "Email verified successfully. You are now logged in.",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+return res.status(200).json({
+  success: true,
+  message: "Email verified successfully. You are now logged in.",
+  token, // Native app needs this to save the JWT.
+  user: {
+    id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  },
+});
   } catch (error) {
     console.error("Email verification error:", error.message);
 
