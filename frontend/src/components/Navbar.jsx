@@ -156,9 +156,12 @@ const Navbar = () => {
         >
           <ShoppingCart size={22} strokeWidth={1.5} />
 
-          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
-            {cartItems.length}
-          </span>
+          {cartItems.length > 0 && (
+            <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
+              {cartItems.length}
+            </span>
+          )}
+
         </NavLink>
 
         {/* User Profile Dropdown */}
