@@ -22,6 +22,8 @@ const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
       try {
         const response = await fetch(
@@ -31,15 +33,34 @@ const Navbar = () => {
           }
         );
 
-        setIsAuthenticated(response.ok);
+        if (isMounted) {
+          setIsAuthenticated(response.ok);
+        }
       } catch (error) {
         console.error("Authentication check failed:", error);
-        setIsAuthenticated(false);
+
+        if (isMounted) {
+          setIsAuthenticated(false);
+        }
       }
     };
 
-    checkAuth();
+    const handleAuthChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener("auth-changed", handleAuthChange);
+
+    // Defer the initial check until after the effect runs.
+    const timeoutId = setTimeout(checkAuth, 0);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+      window.removeEventListener("auth-changed", handleAuthChange);
+    };
   }, []);
+
 
   useEffect(() => {
     const loadCart = async () => {
@@ -172,7 +193,7 @@ const Navbar = () => {
                     My Orders
                   </NavLink>
 
-                   <NavLink
+                  <NavLink
                     to="/wishlist"
                     onClick={() => setIsProfileOpen(false)}
                     className="block px-4 py-3 text-sm hover:bg-gray-100"

@@ -51,6 +51,7 @@ export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    // 1. Validate input
     if (!name?.trim() || !email?.trim() || !password) {
       return res.status(400).json({
         success: false,
@@ -65,8 +66,10 @@ export const registerUser = async (req, res) => {
       });
     }
 
+    // 2. Normalize email
     const normalizedEmail = email.trim().toLowerCase();
 
+    // 3. Check existing user
     const existingUser = await User.findOne({
       email: normalizedEmail,
     });
@@ -78,59 +81,65 @@ export const registerUser = async (req, res) => {
       });
     }
 
+    // 4. Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // 5. Generate 6-digit OTP
+    const otp = crypto.randomInt(100000, 1000000).toString();
+
+    // 6. Hash OTP before storing it
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+
+    // 7. Set OTP expiry to 10 minutes
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    // 8. Create unverified user
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
+      isEmailVerified: false,
+      emailVerificationOTP: hashedOTP,
+      emailVerificationOTPExpires: otpExpiry,
     });
 
+    // 9. Send verification OTP
     try {
       await sendEmail({
-        to: user.email,
-        subject: "Welcome to ApnaShop!",
+        to: "deepakgupta757600@gmail.com",
+        subject: "Verify your ApnaShop email",
         text: `Hello ${user.name},
 
 Welcome to ApnaShop!
 
-Your account has been created successfully.
+Your email verification OTP is: ${otp}
 
-Thank you for joining us. Happy shopping!
+This OTP expires in 10 minutes.
 
-Best regards,
+If you did not create this account, you can ignore this email.
+
 ApnaShop Team`,
       });
-
-      console.log("Welcome email sent successfully");
     } catch (error) {
-      console.error("Welcome email failed:", error);
+      console.error("Verification email failed:", error);
+
+      // Remove the user if the verification email could not be sent
+      await User.deleteOne({ _id: user._id });
+
+      return res.status(503).json({
+        success: false,
+        code: "VERIFICATION_EMAIL_FAILED",
+        message:
+          "We could not send the verification email. Please try registering again.",
+      });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
-
-    // Store JWT in an HTTP-only cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-      path: "/",
-    });
-
+    // 10. Ask frontend to navigate to OTP screen
     return res.status(201).json({
       success: true,
-      message: "Registration successful",
-      token: token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      code: "EMAIL_VERIFICATION_REQUIRED",
+      message: "Registration successful. Please verify your email.",
+      email: user.email,
     });
   } catch (error) {
     if (error.code === 11000) {
@@ -140,7 +149,7 @@ ApnaShop Team`,
       });
     }
 
-    console.error("Registration error:", error.message);
+    console.error("Registration error:", error);
 
     return res.status(500).json({
       success: false,
@@ -148,10 +157,113 @@ ApnaShop Team`,
     });
   }
 };
+
+export const verifyEmail = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // 1. Validate input
+    if (!email?.trim() || !otp?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required",
+      });
+    }
+
+    // 2. Find the user and explicitly select hidden OTP fields
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    }).select("+emailVerificationOTP +emailVerificationOTPExpires");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // 3. Check whether the email is already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already verified",
+      });
+    }
+
+    // 4. Check whether an OTP exists
+    if (!user.emailVerificationOTP || !user.emailVerificationOTPExpires) {
+      return res.status(400).json({
+        success: false,
+        message: "No active OTP found. Please request a new OTP.",
+      });
+    }
+
+    // 5. Check OTP expiry
+    if (user.emailVerificationOTPExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please request a new OTP.",
+      });
+    }
+
+    // 6. Hash the entered OTP
+    const hashedOTP = crypto
+      .createHash("sha256")
+      .update(otp.trim())
+      .digest("hex");
+
+    // 7. Compare the entered OTP with the stored hash
+    if (hashedOTP !== user.emailVerificationOTP) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // 8. Verify email and clear OTP fields
+    user.isEmailVerified = true;
+    user.emailVerificationOTP = undefined;
+    user.emailVerificationOTPExpires = undefined;
+
+    await user.save();
+
+    // Generate JWT
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    // Set HTTP-only authentication cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully. You are now logged in.",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Email verification error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Email verification failed",
+    });
+  }
+};
+
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(req.body);
 
     // 1. Validate input
     if (!email?.trim() || !password) {
@@ -169,14 +281,21 @@ export const loginUser = async (req, res) => {
       email: normalizedEmail,
     }).select("+password");
 
-    console.log(user);
-
     // 3. Check whether user exists
     if (!user) {
       return res.status(404).json({
         success: false,
         code: "USER_NOT_FOUND",
         message: "No account found with this email.",
+      });
+    }
+
+        // Check whether email is verified
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        success: false,
+        code: "EMAIL_NOT_VERIFIED",
+        message: "Please verify your email before logging in.",
       });
     }
 
@@ -188,6 +307,8 @@ export const loginUser = async (req, res) => {
         message: "This account uses Google login. Please sign in with Google.",
       });
     }
+
+
 
     // 5. Compare submitted password with stored password hash
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -250,7 +371,6 @@ export const logoutUser = (req, res) => {
   });
 };
 
-
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -295,8 +415,7 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     // TODO: Replace this URL with your actual reset-password page
-    const resetUrl =
-      `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(normalizedEmail)}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(normalizedEmail)}`;
 
     try {
       await sendEmail({
@@ -364,10 +483,7 @@ export const resetPassword = async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase();
 
     // Hash the token received from the user
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     // Find the matching user with a valid, unexpired token
     const user = await User.findOne({
@@ -394,7 +510,8 @@ export const resetPassword = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Password reset successful. You can now log in with your email and password.",
+      message:
+        "Password reset successful. You can now log in with your email and password.",
     });
   } catch (error) {
     console.error("Reset password error:", error);

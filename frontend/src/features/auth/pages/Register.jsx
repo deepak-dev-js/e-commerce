@@ -16,7 +16,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-   const redirectByRole = (user) => {
+  const redirectByRole = (user) => {
     if (user?.role === "admin") {
       navigate("/admin", { replace: true });
     } else {
@@ -39,8 +39,20 @@ const Register = () => {
     try {
       const data = await registerUser(formData);
 
-      toast.success(data.message || "Registration successful!");
-      navigate("/home", { replace: true });
+      if (data.code === "EMAIL_VERIFICATION_REQUIRED") {
+        toast.success("OTP sent to your email!");
+
+        navigate("/verify-email", {
+          replace: true,
+          state: {
+            email: data.email,
+          },
+        });
+
+        return;
+      }
+
+      toast.error(data.message || "Registration failed");
     } catch (error) {
       toast.error(error.message || "Registration failed");
       console.error("Registration failed:", error);
