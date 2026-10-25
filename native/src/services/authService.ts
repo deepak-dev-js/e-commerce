@@ -16,6 +16,7 @@ export interface User {
 interface AuthResponse {
   success: boolean;
   message: string;
+  code?: string;
   token?: string;
   user?: User;
 }
@@ -109,6 +110,30 @@ export const verifyEmail = async (
   return data.user;
 };
 
+export const resendVerificationOtp = async (email: string) => {
+  const response = await fetch(
+    `${API_URL}/api/auth/resend-verification-otp`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(
+      data.message || 'Unable to send verification OTP.',
+    );
+  }
+
+  return data;
+};
+
+
 export const loginUser = async (formData: {
   email: string;
   password: string;
@@ -123,14 +148,23 @@ export const loginUser = async (formData: {
 
   const data: AuthResponse = await response.json();
 
+  console.log(1, data)
+
   if (!response.ok || !data.success || !data.token || !data.user) {
-    throw new Error(data.message || 'Login failed. Please try again.');
+    const error = new Error(
+      data.message || 'Login failed. Please try again.',
+    ) as Error & { code?: string };
+
+    error.code = data.code;
+
+    throw error;
   }
 
   await saveToken(data.token);
 
   return data.user;
 };
+
 
 export const getCurrentUser = async () => {
   const token = await getToken();

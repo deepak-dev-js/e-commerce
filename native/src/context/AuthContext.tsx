@@ -24,7 +24,7 @@ interface AuthContextType {
     email: string,
     password: string
   ) => Promise<RegisterResponse>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   verifyEmail: (email: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -80,10 +80,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const authenticatedUser = await loginUserService({ email, password });
-    setUser(authenticatedUser);
-  };
+    const authenticatedUser = await loginUserService({
+      email,
+      password,
+    });
 
+    console.log(2,authenticatedUser)
+
+    setUser(authenticatedUser);
+
+    return authenticatedUser;
+  };
 
 
   const verifyEmail = async (email: string, otp: string) => {

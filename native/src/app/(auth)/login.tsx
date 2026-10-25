@@ -15,7 +15,7 @@ import { Link, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
-import { saveToken } from '@/services/authService';
+import { resendVerificationOtp, saveToken } from '@/services/authService';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -23,35 +23,10 @@ export default function LoginScreen() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerifyLink, setShowVerifyLink] = useState(false);
 
   const { login, user } = useAuth();
   const params = useLocalSearchParams<{ redirect?: string }>();
-
-  // const handleGoogleSuccess = async () => {
-  //   setMessage('');
-  //   setLoading(true);
-
-  //   try {
-  //     const authenticatedUser = await loginWithGoogle();
-
-  //     if (authenticatedUser.role === 'admin') {
-  //       // router.replace('/admin');
-  //     } else {
-  //       router.replace('/(tabs)');
-  //     }
-  //   } catch (error) {
-  //     console.error('Google login failed:', error);
-
-  //     setMessage(
-  //       error instanceof Error
-  //         ? error.message
-  //         : 'Google login failed'
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
 
   const redirectByRole = (role?: string) => {
     if (params.redirect === '/checkout') {
@@ -63,6 +38,7 @@ export default function LoginScreen() {
     }
   };
 
+
   const handleSubmit = async () => {
     if (!email.trim() || !password) {
       setMessage('Please enter your email and password.');
@@ -73,15 +49,22 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      await login(email.trim(), password);
 
-      // AuthContext updates the user after successful login.
-      // Fetching the role separately is unnecessary if login returns it.
-      const currentUser = user;
+      const authenticatedUser = await login(email.trim(), password);
+      console.log("authenticatedUser: ", authenticatedUser)
 
-      redirectByRole(currentUser?.role);
+      redirectByRole(authenticatedUser.role);
     } catch (error) {
-      console.error('Login failed:', error);
+      const loginError = error as Error & {
+        code?: string;
+      };
+
+      if (loginError.code === 'EMAIL_NOT_VERIFIED') {
+        setShowVerifyLink(true);
+        setMessage('Please verify your email before logging in.');
+        return;
+      }
+
       setMessage(
         error instanceof Error
           ? error.message
@@ -91,6 +74,36 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
+  const handleVerifyEmail = async () => {
+  const userEmail = email.trim().toLowerCase();
+
+  if (!userEmail) {
+    setMessage('Please enter your email first.');
+    return;
+  }
+
+  setLoading(true);
+  setMessage('');
+
+  try {
+    await resendVerificationOtp(userEmail);
+
+    router.push({
+      pathname: '/verify-email',
+      params: { email: userEmail },
+    });
+  } catch (error) {
+    setMessage(
+      error instanceof Error
+        ? error.message
+        : 'Unable to send OTP.',
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -179,6 +192,24 @@ export default function LoginScreen() {
               </Text>
             ) : null}
 
+            {showVerifyLink && (
+              <Pressable
+                onPress={handleVerifyEmail}
+                disabled={loading}
+              >
+                <Text
+                  style={{
+                    color: '#2563EB',
+                    marginBottom: 8,
+                    textAlign: 'center',
+                    alignSelf: 'center',
+                  }}
+                >
+                   {loading ? 'Sending OTP...' : 'Click here to verify your email'}
+                </Text>
+              </Pressable>
+            )}
+
             <Pressable
               style={[styles.loginButton, loading && styles.disabledButton]}
               onPress={handleSubmit}
@@ -196,17 +227,6 @@ export default function LoginScreen() {
               <Text style={styles.orText}>OR</Text>
               <View style={styles.divider} />
             </View>
-
-            {/* <Pressable
-              onPress={handleGoogleSuccess}
-              disabled={loading}
-              style={styles.googleButton}
-            >
-              <Ionicons name="logo-google" size={20} color="#DB4437" />
-              <Text style={styles.googleButtonText}>
-                Continue with Google
-              </Text>
-            </Pressable> */}
 
             <View style={styles.registerContainer}>
               <Text style={styles.registerText}>

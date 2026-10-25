@@ -56,6 +56,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    lastVerificationOtpSentAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

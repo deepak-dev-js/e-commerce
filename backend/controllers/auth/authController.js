@@ -221,39 +221,38 @@ export const verifyEmail = async (req, res) => {
     }
 
     // 8. Verify email and clear OTP fields
-    user.isEmailVerified = true;
+     user.isEmailVerified = true;
     user.emailVerificationOTP = undefined;
     user.emailVerificationOTPExpires = undefined;
+    user.lastVerificationOtpSentAt = undefined;
 
     await user.save();
 
     // Generate JWT
-const token = jwt.sign(
-  { userId: user._id },
-  process.env.JWT_SECRET,
-  { expiresIn: "1d" }
-);
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
-// Set HTTP-only cookie for web.
-res.cookie("token", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  maxAge: 24 * 60 * 60 * 1000,
-  path: "/",
-});
+    // Set HTTP-only cookie for web.
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+    });
 
-return res.status(200).json({
-  success: true,
-  message: "Email verified successfully. You are now logged in.",
-  token, // Native app needs this to save the JWT.
-  user: {
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  },
-});
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully. You are now logged in.",
+      token, // Native app needs this to save the JWT.
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
   } catch (error) {
     console.error("Email verification error:", error.message);
 
@@ -268,7 +267,6 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Validate input
     if (!email?.trim() || !password) {
       return res.status(400).json({
         success: false,
@@ -277,32 +275,20 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // 2. Find user by email
     const normalizedEmail = email.trim().toLowerCase();
 
     const user = await User.findOne({
       email: normalizedEmail,
     }).select("+password");
 
-    // 3. Check whether user exists
     if (!user) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
-        code: "USER_NOT_FOUND",
-        message: "No account found with this email.",
+        code: "INVALID_CREDENTIALS",
+        message: "Invalid email or password.",
       });
     }
 
-        // Check whether email is verified
-    if (!user.isEmailVerified) {
-      return res.status(403).json({
-        success: false,
-        code: "EMAIL_NOT_VERIFIED",
-        message: "Please verify your email before logging in.",
-      });
-    }
-
-    // 4. Check whether the stored password exists
     if (!user.password) {
       return res.status(400).json({
         success: false,
@@ -311,25 +297,29 @@ export const loginUser = async (req, res) => {
       });
     }
 
-
-
-    // 5. Compare submitted password with stored password hash
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        code: "INVALID_PASSWORD",
-        message: "Incorrect password. Please try again.",
+        code: "INVALID_CREDENTIALS",
+        message: "Invalid email or password.",
       });
     }
 
-    // 6. Generate JWT
+    // Check verification only after validating credentials.
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        success: false,
+        code: "EMAIL_NOT_VERIFIED",
+        message: "Please verify your email before logging in.",
+      });
+    }
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
 
-    // 7. Set authentication cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -338,7 +328,6 @@ export const loginUser = async (req, res) => {
       path: "/",
     });
 
-    // 8. Return successful response
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -351,7 +340,7 @@ export const loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("[LOGIN ERROR] Login controller failed:", error);
+    console.error("[LOGIN ERROR]", error);
 
     return res.status(500).json({
       success: false,
@@ -522,6 +511,105 @@ export const resetPassword = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to reset your password. Please try again.",
+    });
+  }
+};
+
+export const resendVerificationOtp = async (req, res) => {
+  try {
+    const email = req.body.email?.trim().toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required.",
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If the account requires verification, an OTP will be sent.",
+      });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already verified. Please log in.",
+      });
+    }
+
+    // Prevent frequent OTP requests.
+    if (
+      user.emailVerificationOTPExpires &&
+      user.emailVerificationOTPExpires > new Date() &&
+      user.lastVerificationOtpSentAt &&
+      Date.now() - user.lastVerificationOtpSentAt.getTime() < 60_000
+    ) {
+      return res.status(429).json({
+        success: false,
+        message: "Please wait 60 seconds before requesting another OTP.",
+      });
+    }
+
+    // Generate a six-digit OTP.
+    const otp = crypto.randomInt(100000, 1000000).toString();
+
+    // Store only the SHA-256 hash.
+    user.emailVerificationOTP = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+    // OTP expires after 10 minutes.
+    user.emailVerificationOTPExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Track the last send time.
+    user.lastVerificationOtpSentAt = new Date();
+
+    await user.save();
+
+    try {
+      await sendEmail({
+        to: "deepakgupta757600@gmail.com",
+        subject: "Verify your ApnaShop email",
+        text: `Your ApnaShop verification OTP is ${otp}. It expires in 10 minutes.`,
+        html: `
+          <h2>Verify your ApnaShop email</h2>
+          <p>Your verification OTP is:</p>
+          <h1>${otp}</h1>
+          <p>This OTP expires in 10 minutes.</p>
+          <p>If you did not request this, you can ignore this email.</p>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Resend verification email failed:", emailError);
+
+      user.emailVerificationOTP = undefined;
+      user.emailVerificationOTPExpires = undefined;
+      user.lastVerificationOtpSentAt = undefined;
+
+      await user.save();
+
+      return res.status(500).json({
+        success: false,
+        message: "Unable to send OTP. Please try again later.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Verification OTP sent successfully.",
+    });
+  } catch (error) {
+    console.error("Resend verification OTP error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error while sending verification OTP.",
     });
   }
 };

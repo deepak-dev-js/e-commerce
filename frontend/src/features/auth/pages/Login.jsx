@@ -2,7 +2,10 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { loginUser } from "../services/authService";
+import {
+  loginUser,
+  resendVerificationOtp,
+} from "../services/authService";
 import { assets } from "../../../assets/assets";
 
 const Login = () => {
@@ -15,6 +18,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [showVerifyLink, setShowVerifyLink] = useState(false);
 
 
   const redirectByRole = (user) => {
@@ -37,6 +41,7 @@ const Login = () => {
     event.preventDefault();
 
     setMessage("");
+    setShowVerifyLink(false);
     setLoading(true);
 
     try {
@@ -53,12 +58,42 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Login failed:", error);
-      setMessage(error.message || "Login failed. Please try again.");
+
+      if (error.code === "EMAIL_NOT_VERIFIED") {
+        setShowVerifyLink(true);
+        setMessage("Please verify your email before logging in.");
+      } else {
+        setMessage(error.message || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleVerifyEmail = async () => {
+    const email = formData.email.trim().toLowerCase();
+
+    if (!email) {
+      setMessage("Please enter your email address first.");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      await resendVerificationOtp(email);
+
+      navigate("/verify-email", {
+        state: { email },
+      });
+    } catch (error) {
+      console.error("Resend OTP failed:", error);
+      setMessage(error.message || "Unable to send verification OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -169,12 +204,25 @@ const Login = () => {
         </div>
 
         {message && (
-          <p
+          <div
             role="alert"
             className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-600"
           >
-            {message}
-          </p>
+            <p>{message}</p>
+
+            {showVerifyLink && (
+              <button
+                type="button"
+                onClick={handleVerifyEmail}
+                disabled={loading}
+                className="mt-2 font-semibold text-blue-600 underline hover:text-blue-700 disabled:opacity-60"
+              >
+                {loading
+                  ? "Sending verification code..."
+                  : "Click here to verify your email"}
+              </button>
+            )}
+          </div>
         )}
 
         <button

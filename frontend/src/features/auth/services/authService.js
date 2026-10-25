@@ -31,8 +31,30 @@ export const loginUser = async (formData) => {
 
   const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.message || "Login failed");
+  if (!response.ok || !data.success || !data.token || !data.user) {
+    const error = new Error(data.message || "Login failed. Please try again.");
+
+    error.code = data.code;
+
+    throw error;
+  }
+
+  return data;
+};
+
+export const resendVerificationOtp = async (email) => {
+  const response = await fetch(`${API_URL}/api/auth/resend-verification-otp`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || "Unable to send verification OTP.");
   }
 
   return data;
@@ -69,8 +91,7 @@ export const forgotPassword = async (email) => {
 
   if (!response.ok || !data.success) {
     throw new Error(
-      data.message ||
-        "Unable to process your request. Please try again."
+      data.message || "Unable to process your request. Please try again.",
     );
   }
 
@@ -93,7 +114,7 @@ export const resetPassword = async ({ token, email, password }) => {
 
   if (!response.ok || !data.success) {
     throw new Error(
-      data.message || "Unable to reset your password. Please try again."
+      data.message || "Unable to reset your password. Please try again.",
     );
   }
 
