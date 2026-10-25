@@ -1,47 +1,12 @@
 const allowedCategories = [
-  // Fashion
-  "Men's Clothing",
-  "Women's Clothing",
-  "Kids' Clothing",
-  "Sneakers",
-  "Shoes",
-  "Sandals",
-  "Watches",
-  "Bags",
-  "Jewelry",
-  "Sunglasses",
-  "Accessories",
-
-  // Electronics
-  "Mobiles",
-  "Laptops",
-  "Tablets",
-  "Headphones",
-  "Speakers",
-  "Cameras",
-  "Gaming Accessories",
-  "Smart Home",
-
-  // Home & Living
+  "Clothing",
+  "Footwear",
+  "Fashion Accessories",
+  "Mobiles & Electronics",
   "Home & Kitchen",
-  "Furniture",
-  "Home Decor",
-  "Lighting",
-  "Bedding",
-
-  // Beauty & Personal Care
-  "Skincare",
-  "Makeup",
-  "Haircare",
-  "Fragrances",
-  "Personal Care",
-
-  // Other
+  "Beauty & Personal Care",
   "Sports & Fitness",
   "Books",
-  "Toys",
-  "Pet Supplies",
-  "Automotive",
 ];
 
 export default allowedCategories;

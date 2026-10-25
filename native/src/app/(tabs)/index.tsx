@@ -22,11 +22,9 @@ type Product = {
   image: string;
   price: number;
   category?: string;
-  brand?: string;
   stock: number;
   rating?: number;
   numReviews?: number;
-  isFeatured?: boolean;
 };
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -88,11 +86,6 @@ export default function HomeScreen() {
           resizeMode="cover"
         />
 
-        {item.isFeatured && (
-          <View style={styles.featuredBadge}>
-            <Text style={styles.featuredText}>Featured</Text>
-          </View>
-        )}
       </View>
 
       <View style={styles.productInfo}>
@@ -102,7 +95,6 @@ export default function HomeScreen() {
 
         <Text style={styles.productCategory} numberOfLines={1}>
           {item.category || "General"}
-          {item.brand ? ` · ${item.brand}` : ""}
         </Text>
 
         <View style={styles.ratingRow}>

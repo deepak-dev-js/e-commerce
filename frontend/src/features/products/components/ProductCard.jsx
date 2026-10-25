@@ -33,11 +33,6 @@ const ProductCard = ({ product }) => {
               {product.name}
             </h2>
 
-            {product.isFeatured && (
-              <span className="shrink-0 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700 sm:px-2 sm:py-1 sm:text-xs">
-                Featured
-              </span>
-            )}
           </div>
 
           {/* Category and Brand */}
@@ -46,12 +41,9 @@ const ProductCard = ({ product }) => {
               Category: {product.category}
             </span>
 
-            <span className="min-w-0 break-words">
-              Brand: {product.brand}
-            </span>
           </div>
 
-          {/* Rating and Stock */}
+          {/* Rating and Stock */}a
           <div className="flex flex-wrap items-center justify-between gap-1 text-xs sm:text-sm">
             <span className="text-amber-500">
               ★ {product.rating} ({product.numReviews} reviews)

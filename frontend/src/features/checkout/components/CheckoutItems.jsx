@@ -30,9 +30,6 @@ const CheckoutItems = () => {
                 <div className="min-w-0 flex-1">
                   <h3 className="font-medium text-gray-900">{item.name}</h3>
 
-                  <p className="mt-1 text-sm text-gray-500">
-                    {item.brand}
-                  </p>
 
                   <p className="mt-2 text-sm text-gray-600">
                     Quantity: {quantity}

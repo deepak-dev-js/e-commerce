@@ -23,11 +23,9 @@ type Product = {
     price: number;
     description?: string;
     category?: string;
-    brand?: string;
     stock?: number;
     rating?: number;
     numReviews?: number;
-    isFeatured?: boolean;
 };
 
 export default function ProductScreen() {
@@ -129,17 +127,11 @@ export default function ProductScreen() {
                         resizeMode="contain"
                     />
 
-                    {product.isFeatured && (
-                        <View style={styles.featuredBadge}>
-                            <Text style={styles.featuredText}>Featured</Text>
-                        </View>
-                    )}
                 </View>
 
                 <View style={styles.details}>
                     <Text style={styles.category}>
                         {product.category || 'General'}
-                        {product.brand ? `  •  ${product.brand}` : ''}
                     </Text>
 
                     <Text style={styles.productName}>{product.name}</Text>

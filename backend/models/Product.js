@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import allowedCategories from "../constants/allowedCategories.js";
 
 const productSchema = new mongoose.Schema(
   {
@@ -20,56 +21,7 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: [
-        // Fashion
-        "Men's Clothing",
-        "Women's Clothing",
-        "Kids' Clothing",
-        "Sneakers",
-        "Shoes",
-        "Sandals",
-        "Watches",
-        "Bags",
-        "Jewelry",
-        "Sunglasses",
-        "Accessories",
-
-        // Electronics
-        "Mobiles",
-        "Laptops",
-        "Tablets",
-        "Headphones",
-        "Speakers",
-        "Cameras",
-        "Gaming Accessories",
-        "Smart Home",
-
-        // Home & Living
-        "Home & Kitchen",
-        "Furniture",
-        "Home Decor",
-        "Lighting",
-        "Bedding",
-
-        // Beauty & Personal Care
-        "Skincare",
-        "Makeup",
-        "Haircare",
-        "Fragrances",
-        "Personal Care",
-
-        // Other
-        "Sports & Fitness",
-        "Books",
-        "Toys",
-        "Pet Supplies",
-        "Automotive",
-      ],
-    },
-    brand: {
-      type: String,
-      required: true,
-      trim: true,
+      enum: allowedCategories,
     },
     image: {
       type: String,
@@ -77,7 +29,7 @@ const productSchema = new mongoose.Schema(
     },
     stock: {
       type: Number,
-      default: 0,
+      default: 10,
       min: 0,
     },
     rating: {
@@ -91,12 +43,13 @@ const productSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-    isFeatured: {
-      type: Boolean,
-      default: false,
+    purchaseCount: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Product = mongoose.model("Product", productSchema);

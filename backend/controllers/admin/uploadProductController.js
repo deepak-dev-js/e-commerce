@@ -1,5 +1,5 @@
 import cloudinary from "../../config/cloudinary.js";
-import allowedCategories from "../../config/allowedCategories.js";
+import allowedCategories from "../../constants/allowedCategories.js";
 
 export const uploadProductImage = async (req, res) => {
   try {

@@ -1,5 +1,5 @@
 import Product from "../../models/Product.js";
-import allowedCategories from "../../config/allowedCategories.js";
+import allowedCategories from "../../constants/allowedCategories.js";
 
 // POST: Create a product
 export const addProduct = async (req, res) => {
@@ -9,10 +9,8 @@ export const addProduct = async (req, res) => {
       description,
       price,
       category,
-      brand,
       image,
       stock,
-      isFeatured,
     } = req.body;
 
     // Validate required fields
@@ -22,7 +20,6 @@ export const addProduct = async (req, res) => {
       price === undefined ||
       price === null ||
       !category ||
-      !brand?.trim() ||
       !image?.trim()
     ) {
       return res.status(400).json({
@@ -63,10 +60,8 @@ export const addProduct = async (req, res) => {
       description: description.trim(),
       price: Number(price),
       category,
-      brand: brand.trim(),
       image: image.trim(),
-      stock: stock === undefined ? 0 : Number(stock),
-      isFeatured: Boolean(isFeatured),
+      stock: Number(stock),
     });
 
     return res.status(201).json({

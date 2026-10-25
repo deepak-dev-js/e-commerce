@@ -113,10 +113,6 @@ const Cart = () => {
 
                     <div className="flex flex-1 flex-col justify-between gap-4 sm:flex-row sm:items-center">
                       <div>
-                        <p className="mb-1 text-sm text-gray-500">
-                          {item.brand}
-                        </p>
-
                         <h2 className="text-lg font-semibold text-gray-900">
                           {item.name}
                         </h2>

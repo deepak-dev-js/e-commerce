@@ -1,61 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createProduct, uploadProductImage } from "../services/adminService";
+import allowedCategories from "../../../../constants/allowedCategories.js";
 
-
-const categories = [
-  // Fashion
-  "Men's Clothing",
-  "Women's Clothing",
-  "Kids' Clothing",
-  "Sneakers",
-  "Shoes",
-  "Sandals",
-  "Watches",
-  "Bags",
-  "Jewelry",
-  "Sunglasses",
-  "Accessories",
-
-  // Electronics
-  "Mobiles",
-  "Laptops",
-  "Tablets",
-  "Headphones",
-  "Speakers",
-  "Cameras",
-  "Gaming Accessories",
-  "Smart Home",
-
-  // Home & Living
-  "Home & Kitchen",
-  "Furniture",
-  "Home Decor",
-  "Lighting",
-  "Bedding",
-
-  // Beauty & Personal Care
-  "Skincare",
-  "Makeup",
-  "Haircare",
-  "Fragrances",
-  "Personal Care",
-
-  // Other
-  "Sports & Fitness",
-  "Books",
-  "Toys",
-  "Pet Supplies",
-  "Automotive",
-];
 
 const initialFormData = {
   name: "",
-  description: "",
+  description: "High-quality product with premium features.",
   price: "",
   category: "Sneakers",
-  brand: "",
-  stock: "0",
-  isFeatured: false,
 };
 
 const AddProduct = () => {
@@ -82,15 +34,19 @@ const AddProduct = () => {
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
 
-
     setFormData((previous) => ({
       ...previous,
-      [name]: type === "checkbox" ? checked : value,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : ["price",].includes(name)
+            ? value === ""
+              ? ""
+              : Number(value)
+            : value,
     }));
 
     setMessage("");
-
-
   };
 
   const handleImageChange = (event) => {
@@ -141,7 +97,6 @@ const AddProduct = () => {
       const productData = {
         ...formData,
         price: Number(formData.price),
-        stock: Number(formData.stock),
         image: uploadData.imageUrl,
       };
 
@@ -188,7 +143,33 @@ const AddProduct = () => {
           Basic Information
         </h2>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 space-y-4 mb-5">
+          <div>
+            <label
+              htmlFor="category"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              Category *
+            </label>
+
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className={inputClass}
+              required
+            >
+              {allowedCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="">
           <div>
             <label
               htmlFor="name"
@@ -210,82 +191,12 @@ const AddProduct = () => {
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="description"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              Description *
-            </label>
 
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Describe the product..."
-              rows={4}
-              className={inputClass}
-              required
-              maxLength={3000}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label
-                htmlFor="category"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Category *
-              </label>
-
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className={inputClass}
-                required
-              >
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="brand"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Brand *
-              </label>
-
-              <input
-                id="brand"
-                name="brand"
-                type="text"
-                value={formData.brand}
-                onChange={handleChange}
-                placeholder="e.g. Nike"
-                className={inputClass}
-                required
-                maxLength={100}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className="border-t border-gray-100 pt-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-800">
-          Pricing & Inventory
-        </h2>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="border-t border-gray-100">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
           <div>
             <label
               htmlFor="price"
@@ -307,48 +218,11 @@ const AddProduct = () => {
               required
             />
           </div>
-
-          <div>
-            <label
-              htmlFor="stock"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              Available Stock
-            </label>
-
-            <input
-              id="stock"
-              name="stock"
-              type="number"
-              min="0"
-              step="1"
-              value={formData.stock}
-              onChange={handleChange}
-              className={inputClass}
-              required
-            />
-          </div>
         </div>
-
-        <label className="mt-5 flex cursor-pointer items-center gap-3">
-          <input
-            type="checkbox"
-            name="isFeatured"
-            checked={formData.isFeatured}
-            onChange={handleChange}
-            className="h-4 w-4 rounded border-gray-300 accent-blue-600"
-          />
-
-          <span className="text-sm font-medium text-gray-700">
-            Feature this product on the home page
-          </span>
-        </label>
       </div>
 
-      <div className="border-t border-gray-100 pt-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-800">
-          Product Image
-        </h2>
+
+      <div className="border-t border-gray-100">
 
         <label
           htmlFor="image"
@@ -368,7 +242,7 @@ const AddProduct = () => {
 
         <p className="mt-2 text-xs text-gray-500">
           Supported image formats depend on Cloudinary configuration.
-          Maximum file size: 5 MB.
+          Maximum file size: 1 MB.
         </p>
 
         {previewUrl && (
@@ -391,8 +265,8 @@ const AddProduct = () => {
           role="status"
           aria-live="polite"
           className={`rounded-lg p-3 text-sm ${messageType === "success"
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
+            ? "bg-green-50 text-green-700"
+            : "bg-red-50 text-red-700"
             }`}
         >
           {message}

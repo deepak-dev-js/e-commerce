@@ -106,7 +106,6 @@ const ProductDetails = () => {
                 <p className="mt-4 text-2xl font-bold">₹{product.price}</p>
 
                 <p className="mt-3">Category: {product.category}</p>
-                <p className="mt-2">Brand: {product.brand}</p>
 
                 <p className="mt-2">
                     Rating: {product.rating} ({product.numReviews} reviews)

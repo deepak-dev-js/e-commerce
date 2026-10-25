@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../../api/axios";
 import ProductCard from "./ProductCard";
-import allowedCategories from "../../../../constants/allowedCategories";
+import allowedCategories from "../../../../constants/allowedCategories.js";
 
 
 function ProductList() {
