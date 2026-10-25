@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import productRoutes from "./routes/productRoutes.js";
-import reviewRoutes from "./routes/customer/reviewRoutes.js"
 import customerRoutes from "./routes/customer/customerRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/admin/adminRoutes.js";
@@ -30,8 +29,6 @@ app.use("/api/customer", customerRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use("/api/products", productRoutes);
-
-app.use("/api/products", reviewRoutes);
 
 app.use("/api/auth", authRoutes);
 

@@ -116,3 +116,21 @@ export const createProductReview = async (req, res) => {
     });
   }
 };
+
+export const getMyProductReviews = async (req, res) => {
+    try {
+        const reviews = await Review.find({
+            user: req.user._id,
+        })
+            .select("product rating comment")
+            .lean();
+
+        return res.status(200).json({ reviews });
+    } catch (error) {
+        console.error("Failed to fetch product reviews:", error);
+
+        return res.status(500).json({
+            message: "Failed to fetch your reviews.",
+        });
+    }
+};

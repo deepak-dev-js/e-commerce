@@ -10,27 +10,71 @@ const MyOrders = () => {
 
     const [reviewForms, setReviewForms] = useState({});
     const [submittingReview, setSubmittingReview] = useState(null);
+    const [reviewedProducts, setReviewedProducts] = useState({});
+
 
     useEffect(() => {
         let ignore = false;
 
         const fetchMyOrders = async () => {
             try {
-                const response = await fetch(`${API_URL}/api/customer/orders`, {
-                    credentials: "include",
+                // 1. Fetch customer orders
+                const ordersResponse = await fetch(
+                    `${API_URL}/api/customer/orders`,
+                    {
+                        credentials: "include",
+                    }
+                );
+
+                const ordersData = await ordersResponse.json();
+
+                if (!ordersResponse.ok) {
+                    throw new Error(
+                        ordersData.message || "Failed to fetch orders."
+                    );
+                }
+
+                if (ignore) return;
+
+                setOrders(ordersData.orders || []);
+
+                // 2. Fetch customer's existing reviews
+                const reviewsResponse = await fetch(
+                    `${API_URL}/api/customer/review`,
+                    {
+                        credentials: "include",
+                    }
+                );
+
+                const reviewsData = await reviewsResponse.json();
+
+                if (!reviewsResponse.ok) {
+                    throw new Error(
+                        reviewsData.message || "Failed to fetch your reviews."
+                    );
+                }
+
+                if (ignore) return;
+
+                // 3. Create a map of already-reviewed products
+                const reviewsMap = {};
+
+                (reviewsData.reviews || []).forEach((review) => {
+                    const productId =
+                        typeof review.product === "object"
+                            ? review.product._id
+                            : review.product;
+
+                    reviewsMap[productId] = {
+                        rating: review.rating,
+                        comment: review.comment || "",
+                        submitted: true,
+                    };
                 });
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.message || "Failed to fetch orders.");
-                }
-
-                if (!ignore) {
-                    setOrders(data.orders || []);
-                }
+                setReviewedProducts(reviewsMap);
             } catch (error) {
-                console.error("Failed to fetch my orders:", error);
+                console.error("Failed to fetch orders or reviews:", error);
 
                 if (!ignore) {
                     setError(error.message || "Failed to load orders.");
@@ -140,7 +184,7 @@ const MyOrders = () => {
             setSubmittingReview(productId);
 
             const response = await fetch(
-                `${API_URL}/api/products/${productId}/reviews`,
+                `${API_URL}/api/customer/product/${productId}/review`,
                 {
                     method: "POST",
                     credentials: "include",
@@ -160,13 +204,17 @@ const MyOrders = () => {
                 throw new Error(data.message || "Failed to submit review.");
             }
 
-            await Swal.fire({
-                icon: "success",
-                title: "Review Submitted!",
-                text: "Thank you for sharing your experience.",
-                confirmButtonColor: "#2563eb",
-            });
+            // Update the reviewed products state
+            setReviewedProducts((prev) => ({
+                ...prev,
+                [productId]: {
+                    rating: form.rating,
+                    comment: form.comment || "",
+                    submitted: true,
+                },
+            }));
 
+            // Update the review form state
             setReviewForms((prev) => ({
                 ...prev,
                 [productId]: {
@@ -174,6 +222,13 @@ const MyOrders = () => {
                     submitted: true,
                 },
             }));
+
+            await Swal.fire({
+                icon: "success",
+                title: "Review Submitted!",
+                text: "Thank you for sharing your experience.",
+                confirmButtonColor: "#2563eb",
+            });
         } catch (error) {
             console.error("Failed to submit review:", error);
 
@@ -256,17 +311,25 @@ const MyOrders = () => {
                             <div className="space-y-5">
                                 {order.items.map((item, index) => {
                                     const productId =
-                                        typeof item.product === "object"
-                                            ? item.product._id
-                                            : item.product;
+                                        typeof item.product === "string"
+                                            ? item.product
+                                            : item.product?._id?.toString();
 
-                                    const form = reviewForms[productId] || {
-                                        rating: 0,
-                                        comment: "",
+                                    const form = {
+                                        rating:
+                                            reviewedProducts[productId]?.rating ??
+                                            reviewForms[productId]?.rating ??
+                                            0,
+                                        comment:
+                                            reviewedProducts[productId]?.comment ??
+                                            reviewForms[productId]?.comment ??
+                                            "",
+                                        submitted:
+                                            reviewedProducts[productId]?.submitted === true ||
+                                            reviewForms[productId]?.submitted === true,
                                     };
 
-                                    const isDelivered =
-                                        order.orderStatus === "delivered";
+                                    const isDelivered = order.orderStatus === "delivered";
 
                                     return (
                                         <div
@@ -291,10 +354,9 @@ const MyOrders = () => {
 
                                                     <p className="mt-1 font-medium text-gray-800">
                                                         ₹
-                                                        {(
-                                                            item.price *
-                                                            item.quantity
-                                                        ).toLocaleString("en-IN")}
+                                                        {(item.price * item.quantity).toLocaleString(
+                                                            "en-IN"
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
@@ -305,51 +367,71 @@ const MyOrders = () => {
                                                         ✓ Order Delivered
                                                     </p>
 
-                                                    <p className="mt-1 text-sm text-green-700">
-                                                        How was this product?
-                                                        Share your experience.
-                                                    </p>
-
                                                     {form.submitted ? (
-                                                        <p className="mt-3 font-medium text-green-800">
-                                                            ✓ Review submitted successfully!
-                                                        </p>
+                                                        <div className="mt-3">
+                                                            <p className="font-semibold text-green-800">
+                                                                ✓ Thank you for your review!
+                                                            </p>
+
+                                                            <div
+                                                                className="mt-2 flex gap-1"
+                                                                aria-label={`Your rating: ${form.rating} out of 5`}
+                                                            >
+                                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                                    <span
+                                                                        key={star}
+                                                                        className={`text-2xl ${star <= form.rating
+                                                                            ? "text-yellow-400"
+                                                                            : "text-gray-300"
+                                                                            }`}
+                                                                    >
+                                                                        ★
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+
+                                                            {form.comment && (
+                                                                <p className="mt-2 break-words text-sm text-gray-700">
+                                                                    {form.comment}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     ) : (
                                                         <>
+                                                            <p className="mt-1 text-sm text-green-700">
+                                                                How was this product? Share your experience.
+                                                            </p>
+
                                                             <div
                                                                 className="mt-3 flex gap-1"
                                                                 role="group"
                                                                 aria-label={`Rate ${item.name}`}
                                                             >
-                                                                {[1, 2, 3, 4, 5].map(
-                                                                    (star) => (
-                                                                        <button
-                                                                            key={star}
-                                                                            type="button"
-                                                                            onClick={() =>
-                                                                                updateReviewForm(
-                                                                                    productId,
-                                                                                    "rating",
-                                                                                    star
-                                                                                )
-                                                                            }
-                                                                            className={`text-3xl ${star <=
-                                                                                    form.rating
-                                                                                    ? "text-yellow-400"
-                                                                                    : "text-gray-300"
-                                                                                }`}
-                                                                            aria-label={`${star} star${star > 1 ? "s" : ""}`}
-                                                                        >
-                                                                            ★
-                                                                        </button>
-                                                                    )
-                                                                )}
+                                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                                    <button
+                                                                        key={star}
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            updateReviewForm(
+                                                                                productId,
+                                                                                "rating",
+                                                                                star
+                                                                            )
+                                                                        }
+                                                                        className={`text-3xl ${star <= form.rating
+                                                                            ? "text-yellow-400"
+                                                                            : "text-gray-300"
+                                                                            }`}
+                                                                        aria-label={`${star} star${star > 1 ? "s" : ""
+                                                                            }`}
+                                                                    >
+                                                                        ★
+                                                                    </button>
+                                                                ))}
                                                             </div>
 
                                                             <textarea
-                                                                value={
-                                                                    form.comment
-                                                                }
+                                                                value={form.comment}
                                                                 onChange={(e) =>
                                                                     updateReviewForm(
                                                                         productId,
@@ -365,19 +447,13 @@ const MyOrders = () => {
 
                                                             <button
                                                                 type="button"
-                                                                disabled={
-                                                                    submittingReview ===
-                                                                    productId
-                                                                }
+                                                                disabled={submittingReview === productId}
                                                                 onClick={() =>
-                                                                    handleSubmitReview(
-                                                                        productId
-                                                                    )
+                                                                    handleSubmitReview(productId)
                                                                 }
                                                                 className="mt-3 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                                                             >
-                                                                {submittingReview ===
-                                                                    productId
+                                                                {submittingReview === productId
                                                                     ? "Submitting..."
                                                                     : "Submit Review"}
                                                             </button>
@@ -398,8 +474,8 @@ const MyOrders = () => {
 
                                     <span
                                         className={`mt-1 inline-block rounded-full px-3 py-1 text-sm font-medium capitalize ${order.orderStatus === "delivered"
-                                                ? "bg-green-50 text-green-700"
-                                                : "bg-blue-50 text-blue-700"
+                                            ? "bg-green-50 text-green-700"
+                                            : "bg-blue-50 text-blue-700"
                                             }`}
                                     >
                                         {order.orderStatus.replaceAll("_", " ")}
