@@ -14,6 +14,7 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)/verify-email" />
           <Stack.Screen name="(auth)/forgot-password" />
           <Stack.Screen name="(auth)/reset-password" />
+          <Stack.Screen name="orders" options={{ headerShown: true, title: "My Orders", }} />
         </Stack>
       </CartProvider>
     </AuthProvider>

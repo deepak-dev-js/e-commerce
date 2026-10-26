@@ -8,6 +8,7 @@ const initialFormData = {
   description: "High-quality product with premium features.",
   price: "",
   category: "Sneakers",
+  
 };
 
 const AddProduct = () => {
@@ -210,7 +211,7 @@ const AddProduct = () => {
               name="price"
               type="number"
               min="0.01"
-              step="0.01"
+              step="0.01"a
               value={formData.price}
               onChange={handleChange}
               placeholder="4999"

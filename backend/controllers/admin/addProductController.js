@@ -10,8 +10,10 @@ export const addProduct = async (req, res) => {
       price,
       category,
       image,
-      stock,
+      stock = 10,
     } = req.body;
+
+    console.log(typeof stock)
 
     // Validate required fields
     if (

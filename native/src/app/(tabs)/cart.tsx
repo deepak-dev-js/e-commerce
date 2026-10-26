@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from "@/context/AuthContext";
 
 export default function CartScreen() {
   const {
@@ -23,6 +24,10 @@ export default function CartScreen() {
     updateQuantity,
     clearCart,
   } = useCart();
+
+  const { user, loading } = useAuth();
+
+  const isAuthenticated = Boolean(user);
 
   const handleRemove = (productId: string, name: string) => {
     Alert.alert(
@@ -47,6 +52,22 @@ export default function CartScreen() {
       </SafeAreaView>
     );
   }
+
+  const handleCheckout = () => {
+    if (cartItems.length === 0 || loading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      router.push({
+        pathname: "/login",
+        params: { redirect: "/checkout" },
+      });
+      return;
+    }
+
+    router.push("/checkout");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -158,18 +179,22 @@ export default function CartScreen() {
             </View>
 
             <Pressable
-              style={styles.checkoutButton}
-              onPress={() =>
-                Alert.alert(
-                  'Checkout',
-                  'Checkout functionality will be connected next.'
-                )
-              }
+              style={[
+                styles.checkoutButton,
+                cartItems.length === 0 && styles.disabledButton,
+              ]}
+              onPress={handleCheckout}
+              disabled={cartItems.length === 0}
             >
               <Text style={styles.checkoutButtonText}>
                 Proceed to Checkout
               </Text>
-              <Ionicons name="arrow-forward" size={20} color="#ffffff" />
+
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color="#ffffff"
+              />
             </Pressable>
 
             <Pressable

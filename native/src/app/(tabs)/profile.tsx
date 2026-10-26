@@ -191,15 +191,18 @@ const Profile = () => {
                         />
                     </View>
 
-                    <View style={styles.quickLinkContent}>
-                        <Text style={styles.quickLinkTitle}>
-                            My Orders
-                        </Text>
+                   <Pressable
+    style={styles.quickLinkContent}
+    onPress={() => router.push("/orders")}
+>
+    <Text style={styles.quickLinkTitle}>
+        My Orders
+    </Text>
 
-                        <Text style={styles.quickLinkSubtitle}>
-                            View your order history.
-                        </Text>
-                    </View>
+    <Text style={styles.quickLinkSubtitle}>
+        View your order history.
+    </Text>
+</Pressable>
 
                     <Ionicons
                         name="chevron-forward"
