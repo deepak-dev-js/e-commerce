@@ -1,15 +1,11 @@
-import Hero from "../components/Hero";
-import ProductList from "../features/products/components/ProductList";
-
+import ProductList from "../features/products/components/ProductList"
 
 const Home = () => {
   return (
-    <main>
-      {/* <Hero /> */}
+    <div>
+      <ProductList />
+    </div>
+  )
+}
 
-       <ProductList />
-    </main>
-  );
-};
-
-export default Home;
+export default Home

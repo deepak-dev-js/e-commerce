@@ -24,6 +24,7 @@ type CartContextType = {
     cartCount: number;
     cartTotal: number;
     isCartLoaded: boolean;
+    isInCart: (productId: string) => boolean;
     addToCart: (product: Omit<CartItem, 'quantity'>) => void;
     removeFromCart: (productId: string) => void;
     updateQuantity: (productId: string, quantity: number) => void;
@@ -74,6 +75,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         saveCart();
     }, [cartItems, isCartLoaded]);
+
+    const isInCart = useCallback(
+    (productId: string) =>
+        cartItems.some((item) => item.productId === productId),
+    [cartItems]
+);
 
     const addToCart = useCallback(
         (product: Omit<CartItem, 'quantity'>) => {
@@ -151,20 +158,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
 
     return (
-        <CartContext.Provider
-            value={{
-                cartItems,
-                cartCount,
-                cartTotal,
-                isCartLoaded,
-                addToCart,
-                removeFromCart,
-                updateQuantity,
-                clearCart,
-            }}
-        >
-            {children}
-        </CartContext.Provider>
+       <CartContext.Provider
+    value={{
+        cartItems,
+        cartCount,
+        cartTotal,
+        isCartLoaded,
+        isInCart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+    }}
+>
+    {children}
+</CartContext.Provider>
     );
 }
 

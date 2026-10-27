@@ -85,8 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
 
-    console.log(2,authenticatedUser)
-
     setUser(authenticatedUser);
 
     return authenticatedUser;

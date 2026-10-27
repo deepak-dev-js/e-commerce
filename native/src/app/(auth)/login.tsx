@@ -16,6 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { resendVerificationOtp, saveToken } from '@/services/authService';
+import { addToWishlist } from "@/services/wishlistService";
+import { Alert } from "react-native";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -26,17 +28,51 @@ export default function LoginScreen() {
   const [showVerifyLink, setShowVerifyLink] = useState(false);
 
   const { login, user } = useAuth();
-  const params = useLocalSearchParams<{ redirect?: string }>();
+  const params = useLocalSearchParams<{
+    redirect?: string;
+    wishlistProductId?: string;
+  }>();
 
-  const redirectByRole = (role?: string) => {
-    if (params.redirect === '/checkout') {
-      router.replace('/checkout' as never);
-    } else if (role === 'admin') {
-      router.replace('/admin' as never);
-    } else {
-      router.replace('/(tabs)');
+
+  const redirectByRole = async (role?: string) => {
+    if (role === "admin") {
+      router.replace("/admin" as never);
+      return;
     }
+
+    try {
+      // Automatically add the pending product to the wishlist.
+      if (params.wishlistProductId) {
+        await addToWishlist(params.wishlistProductId);
+      }
+    } catch (error) {
+      Alert.alert(
+        "Wishlist",
+        error instanceof Error
+          ? error.message
+          : "Could not add the product to your wishlist."
+      );
+    }
+
+    if (params.redirect === "/checkout") {
+      router.replace("/checkout" as never);
+      return;
+    }
+
+    if (params.redirect?.startsWith("/product/")) {
+      router.replace({
+        pathname: "/product/[id]",
+        params: {
+          id: params.redirect.split("/").pop()!,
+        },
+      });
+
+      return;
+    }
+
+    router.replace("/(tabs)");
   };
+
 
 
   const handleSubmit = async () => {
@@ -51,7 +87,6 @@ export default function LoginScreen() {
     try {
 
       const authenticatedUser = await login(email.trim(), password);
-      console.log("authenticatedUser: ", authenticatedUser)
 
       redirectByRole(authenticatedUser.role);
     } catch (error) {
@@ -76,33 +111,33 @@ export default function LoginScreen() {
   };
 
   const handleVerifyEmail = async () => {
-  const userEmail = email.trim().toLowerCase();
+    const userEmail = email.trim().toLowerCase();
 
-  if (!userEmail) {
-    setMessage('Please enter your email first.');
-    return;
-  }
+    if (!userEmail) {
+      setMessage('Please enter your email first.');
+      return;
+    }
 
-  setLoading(true);
-  setMessage('');
+    setLoading(true);
+    setMessage('');
 
-  try {
-    await resendVerificationOtp(userEmail);
+    try {
+      await resendVerificationOtp(userEmail);
 
-    router.push({
-      pathname: '/verify-email',
-      params: { email: userEmail },
-    });
-  } catch (error) {
-    setMessage(
-      error instanceof Error
-        ? error.message
-        : 'Unable to send OTP.',
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      router.push({
+        pathname: '/verify-email',
+        params: { email: userEmail },
+      });
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to send OTP.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   return (
@@ -205,7 +240,7 @@ export default function LoginScreen() {
                     alignSelf: 'center',
                   }}
                 >
-                   {loading ? 'Sending OTP...' : 'Click here to verify your email'}
+                  {loading ? 'Sending OTP...' : 'Click here to verify your email'}
                 </Text>
               </Pressable>
             )}
@@ -233,7 +268,16 @@ export default function LoginScreen() {
                 Don't have an account?{' '}
               </Text>
 
-              <Link href="/(auth)/register" asChild>
+              <Link
+                href={{
+                  pathname: "/(auth)/register",
+                  params: {
+                    redirect: params.redirect,
+                    wishlistProductId: params.wishlistProductId,
+                  },
+                }}
+                asChild
+              >
                 <Text style={styles.registerLink}>Create Account</Text>
               </Link>
             </View>

@@ -7,6 +7,11 @@ import {
 } from "../../controllers/customer/paymentController.js";
 import {protect} from "../../middleware/authMiddleware.js";
 import { createProductReview, getMyProductReviews } from "../../controllers/customer/reviewController.js";
+import {
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
+} from "../../controllers/customer/wishlistController.js";
 
 const router = express.Router();
 
@@ -22,5 +27,9 @@ router.post("/verify-payment", protect, verifyPayment);
 router.post("/product/:id/review", protect, createProductReview); //Yahan :id product ki MongoDB ID hai.  protect middleware verify karega ki user logged in hai.
 
 router.get("/review", protect, getMyProductReviews);
+
+router.get("/wishlist",protect, getWishlist);
+router.post("/wishlist/:productId",protect, addToWishlist);
+router.delete("/wishlist/:productId",protect, removeFromWishlist);
 
 export default router;

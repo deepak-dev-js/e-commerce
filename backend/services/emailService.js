@@ -18,8 +18,6 @@ const sendEmail = async ({ to, subject, text, html }) => {
     throw new Error("Failed to send email");
   }
 
-  console.log("Email accepted by Resend:", data.id);
-
   return data;
 };
 

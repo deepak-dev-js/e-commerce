@@ -15,6 +15,7 @@ import { Link, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
+import { useLocalSearchParams } from "expo-router";
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -23,54 +24,61 @@ export default function RegisterScreen() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const params = useLocalSearchParams<{
+    redirect?: string;
+    wishlistProductId?: string;
+  }>();
 
-const { register } = useAuth();
 
-const handleSubmit = async () => {
-  if (!name.trim() || !email.trim() || !password) {
-    setMessage('Please fill in all fields.');
-    return;
-  }
+  const { register } = useAuth();
 
-  if (password.length < 8) {
-    setMessage('Password must be at least 8 characters.');
-    return;
-  }
-
-  setMessage('');
-  setLoading(true);
-
-  try {
-    const res = await register(
-      name.trim(),
-      email.trim().toLowerCase(),
-      password
-    );
-
-    if (res.code === 'EMAIL_VERIFICATION_REQUIRED') {
-      router.replace({
-        pathname: '/(auth)/verify-email',
-        params: {
-          email: email.trim().toLowerCase(),
-        },
-      });
-
+  const handleSubmit = async () => {
+    if (!name.trim() || !email.trim() || !password) {
+      setMessage('Please fill in all fields.');
       return;
     }
 
-    setMessage('Unexpected registration response.');
-  } catch (error) {
-    console.error('Registration failed:', error);
+    if (password.length < 8) {
+      setMessage('Password must be at least 8 characters.');
+      return;
+    }
 
-    setMessage(
-      error instanceof Error
-        ? error.message
-        : 'Registration failed. Please try again.'
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+    setMessage('');
+    setLoading(true);
+
+    try {
+      const res = await register(
+        name.trim(),
+        email.trim().toLowerCase(),
+        password
+      );
+
+      if (res.code === 'EMAIL_VERIFICATION_REQUIRED') {
+        router.replace({
+          pathname: "/(auth)/verify-email",
+          params: {
+            email: email.trim().toLowerCase(),
+            redirect: params.redirect,
+            wishlistProductId: params.wishlistProductId,
+          },
+        });
+
+        return;
+      }
+
+      setMessage('Unexpected registration response.');
+    } catch (error) {
+      console.error('Registration failed:', error);
+
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Registration failed. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>

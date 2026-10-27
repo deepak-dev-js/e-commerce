@@ -148,8 +148,6 @@ export const loginUser = async (formData: {
 
   const data: AuthResponse = await response.json();
 
-  console.log(1, data)
-
   if (!response.ok || !data.success || !data.token || !data.user) {
     const error = new Error(
       data.message || 'Login failed. Please try again.',

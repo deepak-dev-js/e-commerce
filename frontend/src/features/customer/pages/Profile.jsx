@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { User, Mail, Phone, MapPin, Calendar, Package, Edit } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -97,10 +98,10 @@ const Profile = () => {
       label: "Member Since",
       value: user.createdAt
         ? new Date(user.createdAt).toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
         : "Not available",
       icon: Calendar,
     },
@@ -177,8 +178,8 @@ const Profile = () => {
 
         {/* Quick Links */}
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <a
-            href="/orders"
+          <Link
+            to="/my-orders"
             className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:border-gray-300"
           >
             <div className="rounded-xl bg-gray-100 p-3">
@@ -191,7 +192,7 @@ const Profile = () => {
                 View your order history.
               </p>
             </div>
-          </a>
+          </Link>
 
           <a
             href="/"

@@ -95,6 +95,25 @@ export default function CartScreen() {
         </View>
       ) : (
         <>
+          <Pressable
+            style={styles.clearButton}
+            onPress={() =>
+              Alert.alert(
+                'Clear Cart',
+                'Remove all products from your cart?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Clear Cart',
+                    style: 'destructive',
+                    onPress: clearCart,
+                  },
+                ]
+              )
+            }
+          >
+            <Text style={styles.clearButtonText}>Clear Cart</Text>
+          </Pressable>
           <FlatList
             data={cartItems}
             keyExtractor={(item) => item.productId}
@@ -195,26 +214,6 @@ export default function CartScreen() {
                 size={20}
                 color="#ffffff"
               />
-            </Pressable>
-
-            <Pressable
-              style={styles.clearButton}
-              onPress={() =>
-                Alert.alert(
-                  'Clear Cart',
-                  'Remove all products from your cart?',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Clear Cart',
-                      style: 'destructive',
-                      onPress: clearCart,
-                    },
-                  ]
-                )
-              }
-            >
-              <Text style={styles.clearButtonText}>Clear Cart</Text>
             </Pressable>
           </View>
         </>
@@ -321,7 +320,7 @@ const styles = StyleSheet.create({
   productPrice: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#2563eb',
+    color: '#000',
     marginTop: 6,
   },
   quantityRow: {
@@ -393,7 +392,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#2563eb',
+    backgroundColor: '#000',
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 8,
@@ -404,12 +403,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   clearButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
+    alignItems: 'flex-end',
+    paddingVertical: 4,
     marginTop: 4,
+    marginRight:8
   },
   clearButtonText: {
-    color: '#dc2626',
+    color: '#000',
     fontSize: 14,
     fontWeight: '600',
   },

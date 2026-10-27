@@ -69,8 +69,6 @@ const Orders = () => {
 
                 const ordersData = await ordersResponse.json();
 
-                console.log(555, ordersData)
-
                 if (!ordersResponse.ok) {
                     throw new Error(
                         ordersData.message || "Failed to fetch orders."

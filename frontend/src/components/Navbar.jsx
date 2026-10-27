@@ -4,7 +4,6 @@ import { assets } from "../assets/assets.js";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import {
   Menu,
-  Search,
   ShoppingCart,
   User,
   X
@@ -64,7 +63,6 @@ const Navbar = () => {
 
   useEffect(() => {
     const loadCart = async () => {
-      console.log("api call");
       try {
         const data = await fetchCart();
         setCartItems(data.cart.items);
@@ -142,13 +140,6 @@ const Navbar = () => {
 
       {/* Search, Cart and Profile */}
       <div className="flex items-center gap-5">
-        <button
-          aria-label="Search"
-          className="text-xl hover:text-gray-500"
-        >
-          <Search />
-        </button>
-
         <NavLink
           to="/cart"
           aria-label="Shopping cart"
@@ -180,30 +171,6 @@ const Navbar = () => {
             <div className="absolute right-0 top-8 z-50 w-40 overflow-hidden rounded-md border border-gray-100 bg-white shadow-lg">
               {isAuthenticated ? (
                 <>
-                  <NavLink
-                    to="/my-profile"
-                    onClick={() => setIsProfileOpen(false)}
-                    className="block px-4 py-3 text-sm hover:bg-gray-100"
-                  >
-                    My Profile
-                  </NavLink>
-
-                  <NavLink
-                    to="/my-orders"
-                    onClick={() => setIsProfileOpen(false)}
-                    className="block px-4 py-3 text-sm hover:bg-gray-100"
-                  >
-                    My Orders
-                  </NavLink>
-
-                  <NavLink
-                    to="/wishlist"
-                    onClick={() => setIsProfileOpen(false)}
-                    className="block px-4 py-3 text-sm hover:bg-gray-100"
-                  >
-                    Wishlist
-                  </NavLink>
-
                   <button
                     onClick={() => {
                       setIsProfileOpen(false);
@@ -292,30 +259,30 @@ const Navbar = () => {
 
             <li>
               <NavLink
-                to="/about"
+                to="/my-profile"
                 onClick={() => setIsMenuOpen(false)}
                 className={navLinkClass}
               >
-                About
+                Profile
               </NavLink>
             </li>
 
             <li>
               <NavLink
-                to="/contact"
+                to="/my-orders"
                 onClick={() => setIsMenuOpen(false)}
                 className={navLinkClass}
               >
-                Contact
+                Orders
               </NavLink>
             </li>
-            <li>
+              <li>
               <NavLink
-                to="/register"
+                to="/wishlist"
                 onClick={() => setIsMenuOpen(false)}
                 className={navLinkClass}
               >
-                Register
+                Wishlist
               </NavLink>
             </li>
           </ul>

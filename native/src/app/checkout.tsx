@@ -168,7 +168,6 @@ export default function CheckoutScreen() {
 
         setLoading(true);
 
-        console.log("cartItems: ",cartItems)
 
         try {
             // 1. Create the payment order on your backend.
@@ -179,8 +178,6 @@ export default function CheckoutScreen() {
                 })),
                 shippingAddress,
             });
-
-            console.log("orderData: ",orderData)
 
             // 2. Open native Razorpay Checkout.
             const paymentResponse = await RazorpayCheckout.open({

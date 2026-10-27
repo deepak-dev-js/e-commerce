@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import {
   loginUser,
   resendVerificationOtp,
 } from "../services/authService";
+import { addToWishlist } from "../../../services/wishlistService";
 import { assets } from "../../../assets/assets";
 
 const Login = () => {
@@ -16,18 +17,36 @@ const Login = () => {
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+
   const [showVerifyLink, setShowVerifyLink] = useState(false);
 
 
-  const redirectByRole = (user) => {
+  const redirectByRole = async (user) => {
     if (user?.role === "admin") {
       navigate("/admin", { replace: true });
-    } else {
-      navigate("/", { replace: true });
+      return;
     }
+
+    const redirectTo = location.state?.redirect || "/";
+    const wishlistProductId = location.state?.wishlistProductId;
+
+    try {
+      if (wishlistProductId) {
+        await addToWishlist(wishlistProductId);
+      }
+    } catch (error) {
+      console.error("Failed to add product to wishlist:", error);
+      // Continue navigation even if adding to wishlist fails.
+    }
+
+    navigate(redirectTo, {
+      replace: true,
+      state: null,
+    });
   };
+
 
   const handleChange = (event) => {
     setFormData({
@@ -48,14 +67,9 @@ const Login = () => {
       const data = await loginUser(formData);
 
       if (data.success) {
-        const redirect = searchParams.get("redirect");
-
-        if (redirect === "/checkout") {
-          navigate("/checkout", { replace: true });
-        } else {
-          redirectByRole(data.user);
-        }
+        await redirectByRole(data.user);
       }
+
     } catch (error) {
       console.error("Login failed:", error);
 
@@ -255,6 +269,7 @@ const Login = () => {
           Don't have an account?{" "}
           <Link
             to="/register"
+            state={location.state}
             className="font-semibold text-blue-600 hover:text-blue-700"
           >
             Create Account

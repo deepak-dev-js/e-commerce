@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -14,6 +14,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import Toast from "@/components/Toast";
+import { useWishlist } from "@/context/WishlistContext";
 
 type Product = {
   _id: string;
@@ -34,6 +37,60 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { cartItems } = useCart();
+  const { user } = useAuth();
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+   const {
+  isInWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  wishlist,
+  wishlistCount
+} = useWishlist();
+
+
+const wishlistIds = wishlist.map((product) => product._id);
+
+
+  const hideToast = useCallback(() => {
+    setToastVisible(false);
+  }, []);
+
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  }, []);
+
+const handleWishlist = async (productId: string) => {
+  if (!user) {
+    router.push({
+      pathname: "/(auth)/login",
+      params: {
+        redirect: "/(tabs)",
+        wishlistProductId: productId,
+      },
+    });
+    return;
+  }
+
+  const wasWishlisted = isInWishlist(productId);
+
+  try {
+    if (wasWishlisted) {
+      await removeFromWishlist(productId);
+      showToast("Removed from wishlist");
+    } else {
+      await addToWishlist(productId);
+      showToast("Added to wishlist");
+    }
+  } catch (error) {
+    console.error("Wishlist update failed:", error);
+    showToast("Could not update wishlist");
+  }
+};
+
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -86,6 +143,29 @@ export default function HomeScreen() {
           resizeMode="cover"
         />
 
+        {/* Wishlist Heart */}
+        <Pressable
+          style={styles.wishlistButton}
+          onPress={(event) => {
+            event.stopPropagation();
+            handleWishlist(item._id);
+          }}
+        >
+          <Ionicons
+            name={
+              wishlistIds.includes(item._id)
+                ? "heart"
+                : "heart-outline"
+            }
+            size={22}
+            color={
+              wishlistIds.includes(item._id)
+                ? "#dc2626"
+                : "#374151"
+            }
+          />
+        </Pressable>
+
       </View>
 
       <View style={styles.productInfo}>
@@ -128,7 +208,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
@@ -138,14 +218,24 @@ export default function HomeScreen() {
           </Text>
 
           <View style={styles.headerActions}>
-            {/* <Pressable
+            {/* Wishlist */}
+            <Pressable
+              onPress={() => router.push('/wishlist')}
               style={styles.iconButton}
-              accessibilityLabel="Search"
-              onPress={() => router.push("/explore")}
+              accessibilityLabel={`Wishlist, ${wishlistCount} items`}
             >
-              <Ionicons name="search-outline" size={24} color="#111827" />
-            </Pressable> */}
+              <Ionicons name="heart-outline" size={25} color="#111827" />
 
+              {wishlistCount > 0 && (
+                <View style={styles.wishlistBadge}>
+                  <Text style={styles.wishlistBadgeText}>
+                    {wishlistCount}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+
+            {/* Cart */}
             <Pressable
               onPress={() => router.push('/cart')}
               style={styles.cartButton}
@@ -161,10 +251,11 @@ export default function HomeScreen() {
               )}
             </Pressable>
 
+            {/* Profile */}
             <Pressable
               style={styles.iconButton}
               accessibilityLabel="Profile"
-              onPress={() => router.push("/profile")}
+              onPress={() => router.push('/profile')}
             >
               <Ionicons name="person-outline" size={24} color="#111827" />
             </Pressable>
@@ -215,6 +306,12 @@ export default function HomeScreen() {
 
         <Text style={styles.footer}>Powered by ApnaShop</Text>
       </ScrollView>
+
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 }
@@ -241,17 +338,6 @@ const styles = StyleSheet.create({
   },
   logoHighlight: {
     color: "#2563eb",
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
-  iconButton: {
-    width: 30,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
   },
   banner: {
     marginHorizontal: 16,
@@ -434,25 +520,79 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     fontSize: 12,
   },
+
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  iconButton: {
+    width: 36,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  cartButton: {
+    width: 36,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+
   cartBadge: {
-    position: "absolute",
-    top: -5,
-    right: -7,
-    backgroundColor: "#000",
-    minWidth: 12,
+    position: 'absolute',
+    top: 0,
+    right: -4,
+    backgroundColor: '#000',
+    minWidth: 18,
     height: 18,
     borderRadius: 9,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 4,
     borderWidth: 1,
-    borderColor: "#ffffff",
+    borderColor: '#ffffff',
   },
-  cartBadgeText: { color: "#ffffff", fontSize: 10, fontWeight: "bold" },
-  cartButton: {
-    width: 42,
-    height: 42,
-    alignItems: 'flex-end',
+
+  cartBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+
+  wishlistButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+  },
+  wishlistBadge: {
+    position: 'absolute',
+    top: 0,
+    right: -2,
+    backgroundColor: '#000',
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+
+  wishlistBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { registerUser } from "../services/authService";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
 import { assets } from "../../../assets/assets";
@@ -15,6 +15,7 @@ const Register = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const redirectByRole = (user) => {
     if (user?.role === "admin") {
@@ -46,6 +47,8 @@ const Register = () => {
           replace: true,
           state: {
             email: data.email,
+            redirect: location.state?.redirect || "/",
+            wishlistProductId: location.state?.wishlistProductId,
           },
         });
 

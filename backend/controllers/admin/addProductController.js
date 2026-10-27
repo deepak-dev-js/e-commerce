@@ -13,8 +13,6 @@ export const addProduct = async (req, res) => {
       stock = 10,
     } = req.body;
 
-    console.log(typeof stock)
-
     // Validate required fields
     if (
       !name?.trim() ||

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { addToWishlist } from "../../../services/wishlistService";
 
 const VerifyEmail = () => {
     const [otp, setOtp] = useState("");
@@ -10,7 +12,8 @@ const VerifyEmail = () => {
     const navigate = useNavigate();
 
     const email = location.state?.email;
-
+    const redirectTo = location.state?.redirect || "/";
+    const wishlistProductId = location.state?.wishlistProductId;
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -37,10 +40,7 @@ const VerifyEmail = () => {
                         "Content-Type": "application/json",
                     },
                     credentials: "include",
-                    body: JSON.stringify({
-                        email,
-                        otp,
-                    }),
+                    body: JSON.stringify({ email, otp }),
                 }
             );
 
@@ -52,14 +52,28 @@ const VerifyEmail = () => {
 
             window.dispatchEvent(new Event("auth-changed"));
 
-            navigate("/", { replace: true });
+            if (wishlistProductId) {
+                try {
+                    await addToWishlist(wishlistProductId);
+                    toast.success("Added to wishlist!");
+                } catch (wishlistError) {
+                    console.error(
+                        "Failed to add product to wishlist:",
+                        wishlistError
+                    );
+                    toast.error("Could not add product to wishlist.");
+                }
+            }
+
+            navigate(redirectTo, {
+                replace: true,
+            });
         } catch (error) {
             setError(error.message || "Email verification failed");
         } finally {
             setLoading(false);
         }
     };
-
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8">
@@ -98,7 +112,9 @@ const VerifyEmail = () => {
                         placeholder="Enter 6-digit OTP"
                         value={otp}
                         onChange={(event) => {
-                            setOtp(event.target.value.replace(/\D/g, "").slice(0, 6));
+                            setOtp(
+                                event.target.value.replace(/\D/g, "").slice(0, 6)
+                            );
                             setError("");
                         }}
                         maxLength={6}
@@ -108,6 +124,7 @@ const VerifyEmail = () => {
                         className="w-full rounded-lg border border-gray-300 px-4 py-3 text-center text-xl tracking-[0.5em] text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
                     />
                 </div>
+
                 {error && (
                     <p
                         role="alert"
@@ -134,6 +151,7 @@ const VerifyEmail = () => {
                     Wrong email?{" "}
                     <Link
                         to="/register"
+                        state={location.state}
                         className="font-semibold text-blue-600 hover:text-blue-700"
                     >
                         Register again

@@ -10,7 +10,6 @@ export const createPaymentOrder = async (req, res) => {
   try {
     const { items, shippingAddress } = req.body;
 
-    console.log(55555555555555555555555555,items)
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({

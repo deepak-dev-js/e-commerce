@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Image,
@@ -13,6 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
+import Toast from '@/components/Toast';
+import { useWishlist } from '@/context/WishlistContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -31,15 +34,84 @@ type Product = {
 export default function ProductScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
 
+
+
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     const { cartItems, addToCart } = useCart();
+    const { user } = useAuth();
+
+    const {
+        isInWishlist,
+        addToWishlist,
+        removeFromWishlist,
+    } = useWishlist();
+
+    const [wishlistLoading, setWishlistLoading] = useState(false);
+
+    const [toastVisible, setToastVisible] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+
+
+
+    const hideToast = useCallback(() => {
+        setToastVisible(false);
+    }, []);
+
+    const showToast = useCallback((message: string) => {
+        setToastMessage(message);
+        setToastVisible(true);
+    }, []);
+
+    const isWishlisted = product
+        ? isInWishlist(product._id)
+        : false;
 
     const isAdded = cartItems.some(
         (item) => item.productId === product?._id
     );
+
+    const handleWishlist = async (productId: string) => {
+        if (!user) {
+            router.push({
+                pathname: '/(auth)/login',
+                params: {
+                    redirect: `/product/${productId}`,
+                    wishlistProductId: productId,
+                },
+            });
+
+            return;
+        }
+
+        if (wishlistLoading) return;
+
+        const wasWishlisted = isInWishlist(productId);
+
+        setWishlistLoading(true);
+
+        try {
+            if (wasWishlisted) {
+                await removeFromWishlist(productId);
+                showToast('Removed from wishlist');
+            } else {
+                await addToWishlist(productId);
+                showToast('Added to wishlist');
+            }
+        } catch (err) {
+            console.error('Wishlist update failed:', err);
+
+            showToast(
+                err instanceof Error
+                    ? err.message
+                    : 'Could not update wishlist'
+            );
+        } finally {
+            setWishlistLoading(false);
+        }
+    };
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -94,13 +166,15 @@ export default function ProductScreen() {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <StatusBar barStyle="dark-content" />
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.header}>
                     <Pressable onPress={() => router.back()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#111827" />
                     </Pressable>
+
+
 
                     <Text style={styles.headerTitle}>Product Details</Text>
                     <Pressable
@@ -126,6 +200,19 @@ export default function ProductScreen() {
                         style={styles.productImage}
                         resizeMode="contain"
                     />
+
+                    {/* Wishlist Heart */}
+                    <Pressable
+                        style={styles.wishlistButton}
+                        disabled={wishlistLoading}
+                        onPress={() => handleWishlist(product._id)}
+                    >
+                        <Ionicons
+                            name={isWishlisted ? 'heart' : 'heart-outline'}
+                            size={22}
+                            color={isWishlisted ? '#dc2626' : '#374151'}
+                        />
+                    </Pressable>
 
                 </View>
 
@@ -209,6 +296,12 @@ export default function ProductScreen() {
 
                 </View>
             </ScrollView>
+
+            <Toast
+                visible={toastVisible}
+                message={toastMessage}
+                onHide={hideToast}
+            />
         </SafeAreaView>
     );
 }
@@ -358,7 +451,7 @@ const styles = StyleSheet.create({
         minHeight: 52,
         marginTop: 24,
         borderRadius: 12,
-        backgroundColor: '#2563eb',
+        backgroundColor: '#000',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -391,5 +484,18 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontSize: 10,
         fontWeight: 'bold',
+    },
+
+    wishlistButton: {
+        position: "absolute",
+        top: 8,
+        right: 8,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#FFFFFF",
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 3,
     },
 });

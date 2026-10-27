@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/useCart.js";
 import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -45,7 +46,6 @@ const Cart = () => {
 
 
   const { cartItems, updateQuantity, removeFromCart } = useCart();
-  console.log(cartItems)
 
   const handleQuantityChange = (productId, quantity) => {
     if (quantity < 1) return;
@@ -63,7 +63,15 @@ const Cart = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 lg:px-12">
+    <div className="min-h-screen bg-gray-50 px-4 my-4 sm:px-6 lg:px-12">
+       <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+            >
+                <ArrowLeft size={18} />
+                Back
+            </button>
       {" "}
       <div className="mx-auto max-w-6xl">
         {" "}
