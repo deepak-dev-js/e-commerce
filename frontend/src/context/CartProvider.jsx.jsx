@@ -8,6 +8,9 @@ export const CartProvider = ({ children }) => {
 
       return items.map((item) => ({
         ...item,
+        cartItemId:
+          item.cartItemId ||
+          `${item._id}_${item.variantId || "default"}`,
         quantity: item.quantity || 1,
       }));
     } catch (error) {
@@ -20,36 +23,91 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product) => {
+  const addToCart = (product, variant = null) => {
+    const variantId = variant?._id || product.variantId || null;
+
+    const cartItemId = `${product._id}_${variantId || "default"}`;
+
+    const variantDetails = variant
+      ? {
+          variantId: variant._id,
+          sku: variant.sku,
+          price: variant.price,
+          stock: variant.stock,
+          attributes: variant.attributes,
+          image: variant.images?.[0] || "",
+        }
+      : {
+          variantId,
+          sku: product.sku || "",
+          price: product.price,
+          stock: product.stock,
+          attributes: product.attributes || {},
+          image: product.image || "",
+        };
+
     setCartItems((prevItems) => {
-      const alreadyExists = prevItems.some(
-        (item) => item._id === product._id
+      const existingItem = prevItems.find(
+        (item) => item.cartItemId === cartItemId,
       );
 
-      if (alreadyExists) return prevItems;
+      if (existingItem) {
+        if (existingItem.quantity >= Number(existingItem.stock)) {
+          return prevItems;
+        }
 
-      return [...prevItems, { ...product, quantity: 1 }];
+        return prevItems.map((item) =>
+          item.cartItemId === cartItemId
+            ? {
+                ...item,
+                quantity: Math.min(
+                  item.quantity + 1,
+                  Number(item.stock),
+                ),
+              }
+            : item,
+        );
+      }
+
+      if (Number(variantDetails.stock) <= 0) {
+        return prevItems;
+      }
+
+      return [
+        ...prevItems,
+        {
+          ...product,
+          ...variantDetails,
+          cartItemId,
+          quantity: 1,
+        },
+      ];
     });
   };
 
-  const updateQuantity = (productId, quantity) => {
-    if (quantity < 1) return;
+  const updateQuantity = (cartItemId, quantity) => {
+    if (!Number.isInteger(quantity) || quantity < 1) return;
 
     setCartItems((prevItems) =>
       prevItems.map((item) =>
-        item._id === productId ? { ...item, quantity } : item
-      )
+        item.cartItemId === cartItemId
+          ? {
+              ...item,
+              quantity: Math.min(quantity, Number(item.stock)),
+            }
+          : item,
+      ),
     );
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (cartItemId) => {
     setCartItems((prevItems) =>
-      prevItems.filter((item) => item._id !== productId)
+      prevItems.filter((item) => item.cartItemId !== cartItemId),
     );
   };
 
-  const isInCart = (productId) =>
-    cartItems.some((item) => item._id === productId);
+  const isInCart = (cartItemId) =>
+    cartItems.some((item) => item.cartItemId === cartItemId);
 
   return (
     <CartContext.Provider

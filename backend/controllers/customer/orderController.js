@@ -46,11 +46,10 @@ export const cancelMyOrder = async (req, res) => {
       });
     }
 
-    if (order.paymentStatus === "pending") {
+    if (order.paymentStatus !== "paid") {
       return res.status(400).json({
         success: false,
-        message:
-          "Payment is still pending. Please check your payment status before cancelling.",
+        message: "Only paid orders can be cancelled through this process.",
       });
     }
 

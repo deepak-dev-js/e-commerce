@@ -26,7 +26,7 @@ const loadRazorpayScript = () => {
 };
 
 const OrderSummary = ({ shippingAddress }) => {
-  const { cartItems } = useCart();
+  const { cartItems, setCartItems } = useCart();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -70,6 +70,7 @@ const OrderSummary = ({ shippingAddress }) => {
       const orderData = await createPaymentOrder({
         items: cartItems.map((item) => ({
           productId: item._id,
+          variantId: item.variantId,
           quantity: item.quantity || 1,
         })),
         shippingAddress,
@@ -96,6 +97,8 @@ const OrderSummary = ({ shippingAddress }) => {
             if (verification.paymentStatus !== "paid") {
               throw new Error("Payment could not be verified.");
             }
+
+            setCartItems([]);
 
             navigate(`/order-success/${verification.orderId}`, {
               replace: true,

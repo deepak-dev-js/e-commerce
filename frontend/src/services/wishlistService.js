@@ -23,9 +23,15 @@ export const getWishlist = () => {
 };
 
 export const addToWishlist = (productId) => {
-  return wishlistRequest(`/api/customer/wishlist/${productId}`, "POST");
+  return wishlistRequest(
+    `/api/customer/wishlist/${productId}`,
+    "POST",
+  );
 };
 
 export const removeFromWishlist = (productId) => {
-  return wishlistRequest(`/api/customer/wishlist/${productId}`, "DELETE");
+  return wishlistRequest(
+    `/api/customer/wishlist/${productId}`,
+    "DELETE",
+  );
 };

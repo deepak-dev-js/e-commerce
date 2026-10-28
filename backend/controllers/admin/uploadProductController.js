@@ -18,6 +18,7 @@ export const uploadProductImage = async (req, res) => {
     }
 
     const category = req.body.category?.trim();
+    console.log("category 1",category)
 
     if (!allowedCategories.includes(category)) {
       return res.status(400).json({

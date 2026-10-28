@@ -29,7 +29,11 @@ export default function CartScreen() {
 
   const isAuthenticated = Boolean(user);
 
-  const handleRemove = (productId: string, name: string) => {
+  const handleRemove = (
+    productId: string,
+    variantId: string,
+    name: string
+  ) => {
     Alert.alert(
       'Remove Product',
       `Remove "${name}" from your cart?`,
@@ -38,7 +42,7 @@ export default function CartScreen() {
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: () => removeFromCart(productId),
+          onPress: () => removeFromCart(productId, variantId),
         },
       ]
     );
@@ -116,7 +120,7 @@ export default function CartScreen() {
           </Pressable>
           <FlatList
             data={cartItems}
-            keyExtractor={(item) => item.productId}
+            keyExtractor={(item) => `${item.productId}_${item.variantId}`}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
@@ -132,6 +136,13 @@ export default function CartScreen() {
                     {item.name}
                   </Text>
 
+                  {item.attributes &&
+                    Object.entries(item.attributes).map(([key, value]) => (
+                      <Text key={key} style={styles.variantText}>
+                        {key}: {value}
+                      </Text>
+                    ))}
+
                   <Text style={styles.productPrice}>
                     ₹{item.price.toLocaleString('en-IN')}
                   </Text>
@@ -140,7 +151,11 @@ export default function CartScreen() {
                     <Pressable
                       style={styles.quantityButton}
                       onPress={() =>
-                        updateQuantity(item.productId, item.quantity - 1)
+                        updateQuantity(
+                          item.productId,
+                          item.variantId,
+                          item.quantity - 1
+                        )
                       }
                     >
                       <Ionicons name="remove" size={18} color="#111827" />
@@ -157,7 +172,11 @@ export default function CartScreen() {
                       ]}
                       disabled={item.quantity >= item.stock}
                       onPress={() =>
-                        updateQuantity(item.productId, item.quantity + 1)
+                        updateQuantity(
+                          item.productId,
+                          item.variantId,
+                          item.quantity + 1
+                        )
                       }
                     >
                       <Ionicons name="add" size={18} color="#111827" />
@@ -172,7 +191,9 @@ export default function CartScreen() {
 
                 <Pressable
                   style={styles.removeButton}
-                  onPress={() => handleRemove(item.productId, item.name)}
+                  onPress={() =>
+                    handleRemove(item.productId, item.variantId, item.name)
+                  }
                 >
                   <Ionicons
                     name="trash-outline"
@@ -406,11 +427,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingVertical: 4,
     marginTop: 4,
-    marginRight:8
+    marginRight: 8
   },
   clearButtonText: {
     color: '#000',
     fontSize: 14,
     fontWeight: '600',
   },
+  variantText: {
+  fontSize: 12,
+  color: '#6b7280',
+  marginTop: 3,
+},
 });

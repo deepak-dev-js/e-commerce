@@ -12,9 +12,13 @@ const CART_STORAGE_KEY = '@apnashop_cart';
 
 export type CartItem = {
     productId: string;
+    variantId: string;
     name: string;
+    sku: string;
     price: number;
     image: string;
+    images: string[];
+    attributes: Record<string, string>;
     quantity: number;
     stock: number;
 };
@@ -24,10 +28,14 @@ type CartContextType = {
     cartCount: number;
     cartTotal: number;
     isCartLoaded: boolean;
-    isInCart: (productId: string) => boolean;
+    isInCart: (productId: string, variantId: string) => boolean;
     addToCart: (product: Omit<CartItem, 'quantity'>) => void;
-    removeFromCart: (productId: string) => void;
-    updateQuantity: (productId: string, quantity: number) => void;
+    removeFromCart: (productId: string, variantId: string) => void;
+    updateQuantity: (
+        productId: string,
+        variantId: string,
+        quantity: number
+    ) => void;
     clearCart: () => void;
 };
 
@@ -77,16 +85,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, [cartItems, isCartLoaded]);
 
     const isInCart = useCallback(
-    (productId: string) =>
-        cartItems.some((item) => item.productId === productId),
-    [cartItems]
-);
+        (productId: string, variantId: string) =>
+            cartItems.some(
+                (item) =>
+                    item.productId === productId &&
+                    item.variantId === variantId
+            ),
+        [cartItems]
+    );
 
     const addToCart = useCallback(
         (product: Omit<CartItem, 'quantity'>) => {
             setCartItems((currentItems) => {
                 const existingItem = currentItems.find(
-                    (item) => item.productId === product.productId
+                    (item) =>
+                        item.productId === product.productId &&
+                        item.variantId === product.variantId
                 );
 
                 if (existingItem) {
@@ -95,7 +109,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     }
 
                     return currentItems.map((item) =>
-                        item.productId === product.productId
+                        item.productId === product.productId &&
+                            item.variantId === product.variantId
                             ? {
                                 ...item,
                                 quantity: Math.min(
@@ -117,31 +132,45 @@ export function CartProvider({ children }: { children: ReactNode }) {
         []
     );
 
-    const removeFromCart = useCallback((productId: string) => {
+   const removeFromCart = useCallback(
+    (productId: string, variantId: string) => {
         setCartItems((items) =>
-            items.filter((item) => item.productId !== productId)
+            items.filter(
+                (item) =>
+                    item.productId !== productId ||
+                    item.variantId !== variantId
+            )
         );
-    }, []);
+    },
+    []
+);
 
-    const updateQuantity = useCallback(
-        (productId: string, quantity: number) => {
-            setCartItems((items) =>
-                items.flatMap((item) => {
-                    if (item.productId !== productId) return [item];
+  const updateQuantity = useCallback(
+    (productId: string, variantId: string, quantity: number) => {
+        setCartItems((items) =>
+            items.flatMap((item) => {
+                if (
+                    item.productId !== productId ||
+                    item.variantId !== variantId
+                ) {
+                    return [item];
+                }
 
-                    if (quantity <= 0) return [];
+                if (quantity <= 0) {
+                    return [];
+                }
 
-                    return [
-                        {
-                            ...item,
-                            quantity: Math.min(quantity, item.stock),
-                        },
-                    ];
-                })
-            );
-        },
-        []
-    );
+                return [
+                    {
+                        ...item,
+                        quantity: Math.min(quantity, item.stock),
+                    },
+                ];
+            })
+        );
+    },
+    []
+);
 
     const clearCart = useCallback(() => {
         setCartItems([]);
@@ -158,21 +187,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
 
     return (
-       <CartContext.Provider
-    value={{
-        cartItems,
-        cartCount,
-        cartTotal,
-        isCartLoaded,
-        isInCart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-    }}
->
-    {children}
-</CartContext.Provider>
+        <CartContext.Provider
+            value={{
+                cartItems,
+                cartCount,
+                cartTotal,
+                isCartLoaded,
+                isInCart,
+                addToCart,
+                removeFromCart,
+                updateQuantity,
+                clearCart,
+            }}
+        >
+            {children}
+        </CartContext.Provider>
     );
 }
 

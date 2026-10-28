@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Image,
@@ -22,13 +22,24 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 type Product = {
     _id: string;
     name: string;
-    image: string;
-    price: number;
     description?: string;
     category?: string;
-    stock?: number;
     rating?: number;
     numReviews?: number;
+
+    options?: {
+        name: string;
+        values: string[];
+    }[];
+
+    variants?: {
+        _id: string;
+        sku: string;
+        price: number;
+        stock: number;
+        images: string[];
+        attributes: Record<string, string>;
+    }[];
 };
 
 export default function ProductScreen() {
@@ -39,6 +50,13 @@ export default function ProductScreen() {
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const [selectedAttributes, setSelectedAttributes] = useState<
+        Record<string, string>
+    >({});
+
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const imageTouchStartX = useRef<number | null>(null);
 
     const { cartItems, addToCart } = useCart();
     const { user } = useAuth();
@@ -69,8 +87,23 @@ export default function ProductScreen() {
         ? isInWishlist(product._id)
         : false;
 
+    const selectedVariant = product?.variants?.find((variant) =>
+        (product.options ?? []).every(
+            (option) =>
+                variant.attributes?.[option.name] ===
+                selectedAttributes[option.name]
+        )
+    );
+
+    const variantImages = selectedVariant?.images ?? [];
+
+    const selectedImage =
+        variantImages[currentImageIndex] ?? variantImages[0];
+
     const isAdded = cartItems.some(
-        (item) => item.productId === product?._id
+        (item) =>
+            item.productId === product?._id &&
+            item.variantId === selectedVariant?._id
     );
 
     const handleWishlist = async (productId: string) => {
@@ -128,7 +161,27 @@ export default function ProductScreen() {
 
                 const data = await response.json();
 
-                setProduct(data.product ?? data);
+                const fetchedProduct: Product = data.product ?? data;
+
+                setProduct(fetchedProduct);
+
+                const defaultAttributes: Record<string, string> = {};
+
+                (fetchedProduct.options ?? []).forEach((option) => {
+                    const firstAvailableVariant = fetchedProduct.variants?.find(
+                        (variant) =>
+                            variant.stock > 0 &&
+                            option.values.includes(variant.attributes?.[option.name])
+                    );
+
+                    defaultAttributes[option.name] =
+                        firstAvailableVariant?.attributes?.[option.name] ??
+                        option.values[0] ??
+                        '';
+                });
+
+                setSelectedAttributes(defaultAttributes);
+                setCurrentImageIndex(0);
             } catch (err) {
                 console.error('Fetch product failed:', err);
                 setError(
@@ -194,12 +247,58 @@ export default function ProductScreen() {
 
                 </View>
 
-                <View style={styles.imageContainer}>
-                    <Image
-                        source={{ uri: product.image }}
-                        style={styles.productImage}
-                        resizeMode="contain"
-                    />
+                <View
+                    style={styles.imageContainer}
+                    onTouchStart={(event) => {
+                        imageTouchStartX.current = event.nativeEvent.pageX;
+                    }}
+                    onTouchEnd={(event) => {
+                        const startX = imageTouchStartX.current;
+                        const endX = event.nativeEvent.pageX;
+                        if (startX === null) return;
+                        const difference = startX - endX;
+
+                        if (Math.abs(difference) < 50) return;
+
+                        if (difference > 0 && currentImageIndex < variantImages.length - 1) {
+                            setCurrentImageIndex((index) => index + 1);
+                        } else if (difference < 0 && currentImageIndex > 0) {
+                            setCurrentImageIndex((index) => index - 1);
+                        }
+                    }}
+                >
+                    {selectedImage ? (
+                        <Image
+                            source={{ uri: selectedImage }}
+                            style={styles.productImage}
+                            resizeMode="contain"
+                        />
+                    ) : (
+                        <View style={styles.imagePlaceholder}>
+                            <Ionicons
+                                name="image-outline"
+                                size={48}
+                                color="#9ca3af"
+                            />
+                            <Text style={styles.statusText}>No image available</Text>
+                        </View>
+                    )}
+
+                    {variantImages.length > 1 && (
+                        <View style={styles.imagePagination}>
+                            {variantImages.map((_, index) => (
+                                <Pressable
+                                    key={`${selectedVariant?._id}-${index}`}
+                                    onPress={() => setCurrentImageIndex(index)}
+                                    style={[
+                                        styles.imageDot,
+                                        currentImageIndex === index &&
+                                        styles.activeImageDot,
+                                    ]}
+                                />
+                            ))}
+                        </View>
+                    )}
 
                     {/* Wishlist Heart */}
                     <Pressable
@@ -223,6 +322,48 @@ export default function ProductScreen() {
 
                     <Text style={styles.productName}>{product.name}</Text>
 
+                    {(product.options ?? []).map((option) => (
+                        <View key={option.name} style={styles.optionContainer}>
+                            <Text style={styles.optionTitle}>
+                                {option.name}: {selectedAttributes[option.name] ?? ''}
+                            </Text>
+
+                            <View style={styles.optionValues}>
+                                {option.values.map((value) => {
+                                    const isSelected =
+                                        selectedAttributes[option.name] === value;
+
+                                    return (
+                                        <Pressable
+                                            key={value}
+                                            onPress={() => {
+                                                setSelectedAttributes((previous) => ({
+                                                    ...previous,
+                                                    [option.name]: value,
+                                                }));
+                                                setCurrentImageIndex(0);
+                                            }}
+                                            style={[
+                                                styles.optionButton,
+                                                isSelected && styles.selectedOptionButton,
+                                            ]}
+                                        >
+                                            <Text
+                                                style={[
+                                                    styles.optionButtonText,
+                                                    isSelected &&
+                                                    styles.selectedOptionButtonText,
+                                                ]}
+                                            >
+                                                {value}
+                                            </Text>
+                                        </Pressable>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    ))}
+
                     <View style={styles.ratingRow}>
                         <Ionicons name="star" size={18} color="#f59e0b" />
                         <Text style={styles.rating}>
@@ -234,25 +375,40 @@ export default function ProductScreen() {
                     </View>
 
                     <Text style={styles.price}>
-                        ₹{Number(product.price).toLocaleString('en-IN')}
+                        {selectedVariant
+                            ? `₹${selectedVariant.price.toLocaleString('en-IN')}`
+                            : 'Variant unavailable'}
                     </Text>
 
                     <View style={styles.stockRow}>
                         <View
                             style={[
                                 styles.stockDot,
-                                { backgroundColor: (product.stock ?? 0) > 0 ? '#16a34a' : '#dc2626' },
+                                {
+                                    backgroundColor:
+                                        selectedVariant && selectedVariant.stock > 0
+                                            ? '#16a34a'
+                                            : '#dc2626',
+                                },
                             ]}
                         />
+
                         <Text
                             style={[
                                 styles.stockText,
-                                { color: (product.stock ?? 0) > 0 ? '#15803d' : '#dc2626' },
+                                {
+                                    color:
+                                        selectedVariant && selectedVariant.stock > 0
+                                            ? '#15803d'
+                                            : '#dc2626',
+                                },
                             ]}
                         >
-                            {(product.stock ?? 0) > 0
-                                ? `In Stock (${product.stock} available)`
-                                : 'Out of Stock'}
+                            {selectedVariant
+                                ? selectedVariant.stock > 0
+                                    ? `In Stock (${selectedVariant.stock} available)`
+                                    : 'Out of Stock'
+                                : 'This combination is unavailable'}
                         </Text>
                     </View>
 
@@ -265,16 +421,23 @@ export default function ProductScreen() {
                     <Pressable
                         style={[
                             styles.primaryButton,
-                            (product.stock ?? 0) <= 0 && styles.disabledButton,
+                            (!selectedVariant || selectedVariant.stock <= 0) &&
+                            styles.disabledButton,
                         ]}
-                        disabled={(product.stock ?? 0) <= 0}
+                        disabled={!selectedVariant || selectedVariant.stock <= 0}
                         onPress={() => {
+                            if (!selectedVariant) return;
+
                             addToCart({
                                 productId: product._id,
+                                variantId: selectedVariant._id,
                                 name: product.name,
-                                price: product.price,
-                                image: product.image,
-                                stock: product.stock ?? 0,
+                                sku: selectedVariant.sku,
+                                price: selectedVariant.price,
+                                image: selectedVariant.images[0] || '',
+                                images: selectedVariant.images,
+                                attributes: selectedVariant.attributes,
+                                stock: selectedVariant.stock,
                             });
                         }}
                     >
@@ -285,7 +448,7 @@ export default function ProductScreen() {
                         />
 
                         <Text style={styles.primaryButtonText}>
-                            {(product.stock ?? 0) <= 0
+                            {(selectedVariant?.stock ?? 0) <= 0
                                 ? 'Out of Stock'
                                 : isAdded
                                     ? 'Added'
@@ -497,5 +660,74 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         elevation: 3,
+    },
+    imagePlaceholder: {
+        flex: 1,
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    imagePagination: {
+        position: 'absolute',
+        bottom: 12,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
+    },
+
+    imageDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#d1d5db',
+    },
+
+    activeImageDot: {
+        width: 20,
+        backgroundColor: '#2563eb',
+    },
+
+    optionContainer: {
+        marginTop: 18,
+    },
+
+    optionTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#111827',
+        marginBottom: 10,
+    },
+
+    optionValues: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+
+    optionButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 8,
+        backgroundColor: '#ffffff',
+    },
+
+    selectedOptionButton: {
+        borderColor: '#2563eb',
+        backgroundColor: '#eff6ff',
+    },
+
+    optionButtonText: {
+        fontSize: 13,
+        color: '#374151',
+        fontWeight: '500',
+    },
+
+    selectedOptionButtonText: {
+        color: '#2563eb',
+        fontWeight: '700',
     },
 });

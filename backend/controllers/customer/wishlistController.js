@@ -2,12 +2,13 @@ import mongoose from "mongoose";
 import User from "../../models/User.js";
 import Product from "../../models/Product.js";
 
-// GET /api/wishlist
+// GET /api/customer/wishlist
 export const getWishlist = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate({
       path: "wishlist",
-      select: "name description price image category stock rating numReviews",
+      select:
+        "name description category brand options variants rating numReviews purchaseCount",
     });
 
     if (!user) {
@@ -31,7 +32,7 @@ export const getWishlist = async (req, res) => {
   }
 };
 
-// POST /api/wishlist/:productId
+// POST /api/customer/wishlist/:productId
 export const addToWishlist = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -43,7 +44,7 @@ export const addToWishlist = async (req, res) => {
       });
     }
 
-    const product = await Product.findById(productId);
+    const product = await Product.findById(productId).select("_id");
 
     if (!product) {
       return res.status(404).json({
@@ -64,7 +65,8 @@ export const addToWishlist = async (req, res) => {
       },
     ).populate({
       path: "wishlist",
-      select: "name description price image category stock rating numReviews",
+      select:
+        "name description category brand options variants rating numReviews purchaseCount",
     });
 
     if (!user) {
@@ -89,7 +91,7 @@ export const addToWishlist = async (req, res) => {
   }
 };
 
-// DELETE /api/wishlist/:productId
+// DELETE /api/customer/wishlist/:productId
 export const removeFromWishlist = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -113,7 +115,8 @@ export const removeFromWishlist = async (req, res) => {
       },
     ).populate({
       path: "wishlist",
-      select: "name description price image category stock rating numReviews",
+      select:
+        "name description category brand options variants rating numReviews purchaseCount",
     });
 
     if (!user) {

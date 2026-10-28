@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import OrderTracking from "../../../components/OrderTracking";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -308,6 +309,11 @@ const MyOrders = () => {
                                 </div>
                             </div>
 
+                            {order.paymentStatus === "paid" &&
+                                order.orderStatus !== "cancelled" && (
+                                    <OrderTracking orderStatus={order.orderStatus} />
+                                )}
+
                             <div className="space-y-5">
                                 {order.items.map((item, index) => {
                                     const productId =
@@ -347,6 +353,21 @@ const MyOrders = () => {
                                                     <h3 className="font-semibold text-gray-900">
                                                         {item.name}
                                                     </h3>
+
+                                                    {/* Selected variant attributes */}
+                                                    {item.attributes &&
+                                                        Object.entries(
+                                                            item.attributes instanceof Map
+                                                                ? Object.fromEntries(item.attributes)
+                                                                : item.attributes
+                                                        ).map(([name, value]) => (
+                                                            <p
+                                                                key={name}
+                                                                className="mt-1 text-sm text-gray-500"
+                                                            >
+                                                                {name}: {value}
+                                                            </p>
+                                                        ))}
 
                                                     <p className="mt-1 text-sm text-gray-500">
                                                         Quantity: {item.quantity}
@@ -481,22 +502,16 @@ const MyOrders = () => {
                                         {order.orderStatus.replaceAll("_", " ")}
                                     </span>
 
-                                    {[
-                                        "confirmed",
-                                        "packed",
-                                        "shipped",
-                                        "in_transit",
-                                        "out_for_delivery",
-                                    ].includes(order.orderStatus) && (
-                                            <button
-                                                onClick={() =>
-                                                    handleCancelOrder(order._id)
-                                                }
-                                                className="ml-4 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-                                            >
-                                                Cancel Order
-                                            </button>
-                                        )}
+                                    {["confirmed", "packed"].includes(order.orderStatus) && (
+                                        <button
+                                            onClick={() =>
+                                                handleCancelOrder(order._id)
+                                            }
+                                            className="ml-4 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                                        >
+                                            Cancel Order
+                                        </button>
+                                    )}
                                 </div>
 
                                 <p className="text-lg font-bold text-gray-900">

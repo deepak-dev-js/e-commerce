@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
+
 import allowedCategories from "../constants/allowedCategories.js";
+import productOptionSchema from "./productOptionSchema.js";
+import productVariantSchema from "./productVariantSchema.js";
 
 const productSchema = new mongoose.Schema(
   {
@@ -8,41 +11,52 @@ const productSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     description: {
       type: String,
       required: true,
       trim: true,
     },
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
+
     category: {
       type: String,
       required: true,
       enum: allowedCategories,
     },
-    image: {
+
+    brand: {
       type: String,
-      required: true,
+      trim: true,
+      default: "",
     },
-    stock: {
-      type: Number,
-      default: 10,
-      min: 0,
+
+    // Available options for this product.
+    options: {
+      type: [productOptionSchema],
+      default: [],
     },
+
+    // Actual purchasable configurations.
+    variants: {
+      type: [productVariantSchema],
+      default: [],
+    },
+
+    // Product-level rating.
     rating: {
       type: Number,
       default: 0,
       min: 0,
       max: 5,
     },
+
     numReviews: {
       type: Number,
       default: 0,
       min: 0,
     },
+
+    // Total units purchased across all variants.
     purchaseCount: {
       type: Number,
       default: 0,

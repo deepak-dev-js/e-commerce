@@ -6,12 +6,26 @@ export interface WishlistProduct {
   _id: string;
   name: string;
   description?: string;
-  image: string;
-  price: number;
-  category?: string;
-  stock?: number;
-  rating?: number;
-  numReviews?: number;
+  category: string;
+  brand: string;
+
+  options: {
+    name: string;
+    values: string[];
+  }[];
+
+  variants: {
+    _id: string;
+    sku: string;
+    price: number;
+    stock: number;
+    images: string[];
+    attributes: Record<string, string>;
+  }[];
+
+  rating: number;
+  numReviews: number;
+  purchaseCount: number;
 }
 
 interface WishlistResponse {

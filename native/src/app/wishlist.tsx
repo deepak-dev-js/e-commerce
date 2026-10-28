@@ -1,82 +1,43 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
+  type ListRenderItem,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { getWishlist, removeFromWishlist } from "@/services/wishlistService";
-import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import type { WishlistProduct } from "@/services/wishlistService";
 
-type Product = {
-  _id: string;
-  name: string;
-  price: number;
-  category?: string;
-  image?: string;
-  images?: string[];
-  imageUrl?: string;
-  stock?: number;
-};
+
 
 const Wishlist = () => {
   const router = useRouter();
-  const { addToCart, isInCart, cartItems } = useCart();
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+ const {
+  wishlist: products,
+  isWishlistLoaded,
+  getWishList,
+  removeFromWishlist,
+} = useWishlist();
+
   const [removingIds, setRemovingIds] = useState<string[]>([]);
-
-  const fetchWishlist = async () => {
-    try {
-      const response = await getWishlist();
-
-      const wishlistProducts = Array.isArray(response)
-        ? response
-        : (response as { wishlist?: Product[]; products?: Product[] } | null | undefined)
-            ?.wishlist ||
-          (response as { wishlist?: Product[]; products?: Product[] } | null | undefined)
-            ?.products ||
-          [];
-
-      setProducts(wishlistProducts);
-    } catch (error) {
-      console.error("Failed to fetch wishlist:", error);
-      Alert.alert("Error", "Failed to load wishlist.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      fetchWishlist();
-    }, [])
+      getWishList().catch(() => {
+        Alert.alert("Error", "Failed to load wishlist.");
+      });
+    }, [getWishList])
   );
-
-  const handleAddToCart = (product: Product) => {
-    if (isInCart(product._id)) {
-      router.push("/cart");
-      return;
-    }
-
-    addToCart({
-      ...product,
-      productId: product._id,
-      image: product.image ?? product.imageUrl ?? product.images?.[0] ?? "",
-      stock: product.stock ?? 0,
-    });
-    Alert.alert("Success", "Product added to cart.");
-  };
 
   const handleRemove = (productId: string) => {
     Alert.alert(
@@ -93,13 +54,6 @@ const Wishlist = () => {
           onPress: async () => {
             if (removingIds.includes(productId)) return;
 
-            const previousProducts = products;
-
-            // Update the UI immediately.
-            setProducts((current) =>
-              current.filter((product) => product._id !== productId)
-            );
-
             setRemovingIds((current) => [...current, productId]);
 
             try {
@@ -107,7 +61,6 @@ const Wishlist = () => {
             } catch (error) {
               console.error("Failed to remove wishlist product:", error);
 
-              setProducts(previousProducts);
               Alert.alert(
                 "Error",
                 "Could not remove the product. Please try again."
@@ -123,12 +76,14 @@ const Wishlist = () => {
     );
   };
 
-  const renderProduct = ({ item }: { item: Product }) => {
-    const imageUri =
-      item.image || item.images?.[0] || item.imageUrl;
+  const renderProduct: ListRenderItem<WishlistProduct> = ({ item }) => {
+    const imageUri = item.variants?.[0]?.images?.[0];
 
     return (
-      <View style={styles.card}>
+      <Pressable
+        style={styles.card}
+        onPress={() => router.push(`/product/${item._id}` as any)}
+      >
         <Pressable
           style={styles.imageContainer}
           onPress={() =>
@@ -153,7 +108,10 @@ const Wishlist = () => {
 
           <Pressable
             style={styles.removeButton}
-            onPress={() => handleRemove(item._id)}
+            onPress={(event) => {
+              event.stopPropagation();
+              handleRemove(item._id);
+            }}
             disabled={removingIds.includes(item._id)}
             accessibilityLabel="Remove from wishlist"
           >
@@ -181,36 +139,33 @@ const Wishlist = () => {
           </Text>
 
           <Text style={styles.price}>
-            ₹{Number(item.price || 0).toLocaleString("en-IN")}
+            {item.variants?.length
+              ? `From ₹${Math.min(
+                ...item.variants.map((variant) => variant.price),
+              ).toLocaleString("en-IN")}`
+              : "Price unavailable"}
           </Text>
 
           <Pressable
-            style={[
-              styles.addButton,
-              isInCart(item._id) && styles.addedButton,
-            ]}
-            onPress={() => handleAddToCart(item)}
+            style={styles.addButton}
+            onPress={() => router.push(`/product/${item._id}` as any)}
           >
             <Ionicons
-              name={
-                isInCart(item._id)
-                  ? "checkmark-circle-outline"
-                  : "cart-outline"
-              }
+              name="eye-outline"
               size={18}
               color="#FFFFFF"
             />
 
             <Text style={styles.addButtonText}>
-              {isInCart(item._id) ? "Go to Cart" : "Add to Cart"}
+              View Product
             </Text>
           </Pressable>
         </View>
-      </View>
+      </Pressable>
     );
   };
 
-  if (loading) {
+  if (!isWishlistLoaded) {
     return (
       <SafeAreaView style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#EF4444" />
@@ -301,21 +256,7 @@ const Wishlist = () => {
               </Text>
             </Pressable>
 
-            {cartItems.length > 0 && (
-              <Pressable
-                style={styles.cartButton}
-                onPress={() => router.push("/cart")}
-              >
-                <Ionicons
-                  name="cart-outline"
-                  size={20}
-                  color="#FFFFFF"
-                />
-                <Text style={styles.cartButtonText}>
-                  Go to Cart ({cartItems.length})
-                </Text>
-              </Pressable>
-            )}
+
           </View>
         </>
       )}
@@ -445,9 +386,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#111827",
     paddingHorizontal: 6,
   },
-  addedButton: {
-    backgroundColor: "#374151",
-  },
   addButtonText: {
     fontSize: 12,
     fontWeight: "600",
@@ -513,19 +451,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#374151",
-  },
-  cartButton: {
-    minHeight: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: 9,
-    backgroundColor: "#111827",
-  },
-  cartButtonText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#FFFFFF",
   },
 });

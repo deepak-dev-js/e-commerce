@@ -22,12 +22,23 @@ type Product = {
   _id: string;
   name: string;
   description?: string;
-  image: string;
-  price: number;
+  image?: string;
   category?: string;
-  stock: number;
   rating?: number;
   numReviews?: number;
+
+  options?: {
+    name: string;
+    values: string[];
+  }[];
+
+  variants?: {
+    _id: string;
+    price: number;
+    stock: number;
+    images: string[];
+    attributes: Record<string, string>;
+  }[];
 };
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -138,10 +149,15 @@ const handleWishlist = async (productId: string) => {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: item.image }}
-          style={styles.productImage}
-          resizeMode="cover"
-        />
+  source={{
+    uri:
+      item.variants?.[0]?.images?.[0] ||
+      item.image ||
+      "https://placehold.co/300x300",
+  }}
+  style={styles.productImage}
+  resizeMode="cover"
+/>
 
         {/* Wishlist Heart */}
         <Pressable
@@ -184,24 +200,7 @@ const handleWishlist = async (productId: string) => {
           </Text>
         </View>
 
-        <Text style={styles.price}>₹{item.price}</Text>
-
-        <Text
-          style={[
-            styles.stockText,
-            item.stock > 0 ? styles.inStock : styles.outOfStock,
-          ]}
-        >
-          {item.stock > 0 ? "In Stock" : "Out of Stock"}
-        </Text>
-
-        <View
-          style={[styles.addButton, item.stock <= 0 && styles.disabledButton]}
-        >
-          <Text style={styles.addButtonText}>
-            {item.stock > 0 ? "View Product" : "Unavailable"}
-          </Text>
-        </View>
+        <Text style={styles.price}>₹{item.variants?.[0]?.price ?? 0}</Text>
       </View>
     </Pressable>
   );
