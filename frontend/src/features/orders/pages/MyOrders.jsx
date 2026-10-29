@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import OrderTracking from "../../../components/OrderTracking";
+import { socket } from "../../../socket";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -97,6 +98,44 @@ const MyOrders = () => {
             ignore = true;
         };
     }, []);
+
+   
+useEffect(() => {
+    const handleConnect = () => {
+        console.log("Customer socket connected:", socket.id);
+    };
+
+    const handleConnectError = (error) => {
+        console.error("Customer socket error:", error.message);
+    };
+
+    const handleOrderStatusUpdate = (data) => {
+        console.log("Order status update received:", data);
+
+        setOrders((previousOrders) =>
+            previousOrders.map((order) =>
+                order._id === data.orderId
+                    ? { ...order, orderStatus: data.status }
+                    : order
+            )
+        );
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("connect_error", handleConnectError);
+    socket.on("order_status_updated", handleOrderStatusUpdate);
+
+    if (!socket.connected) {
+        socket.connect();
+    }
+
+    return () => {
+        socket.off("connect", handleConnect);
+        socket.off("connect_error", handleConnectError);
+        socket.off("order_status_updated", handleOrderStatusUpdate);
+    };
+}, []);
+
 
     const handleCancelOrder = async (orderId) => {
         const result = await Swal.fire({

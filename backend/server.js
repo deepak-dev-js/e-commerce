@@ -7,14 +7,20 @@ import customerRoutes from "./routes/customer/customerRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/admin/adminRoutes.js";
 import cookieParser from "cookie-parser";
+import { createServer } from "node:http";
+import { initSocket } from "./config/socket.js";
 
 dotenv.config();
 
 const app = express();
 
+const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL].filter(
+  Boolean,
+);
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", process.env.CLIENT_URL].filter(Boolean),
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
@@ -34,12 +40,16 @@ app.use("/api/auth", authRoutes);
 
 const PORT = process.env.PORT || 5000;
 
+const httpServer = createServer(app);
+
+initSocket(httpServer, allowedOrigins);
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB Atlas connected successfully");
 
-    app.listen(PORT, "0.0.0.0", () => {
+    httpServer.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
     });
   })

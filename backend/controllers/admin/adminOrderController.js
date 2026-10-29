@@ -1,6 +1,7 @@
 import Order from "../../models/Order.js";
 import sendEmail from "../../services/emailService.js";
 import createOrderEmailTemplate from "../../templates/orderEmailTemplate.js";
+import { getIO } from "../../config/socket.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -64,8 +65,19 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     // Update the order status.
+    // Update the order status.
     order.orderStatus = orderStatus;
     await order.save();
+
+    // Notify the customer in real time.
+    getIO()
+      .to(`user:${order.user}`)
+      .emit("order_status_updated", {
+        orderId: order._id.toString(),
+        status: order.orderStatus,
+        message: `Your order status is now ${order.orderStatus.replaceAll("_", " ")}`,
+        updatedAt: order.updatedAt,
+      });
 
     const fullName = order.shippingAddress?.fullName || "Customer";
 

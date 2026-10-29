@@ -7,6 +7,7 @@ import multer from "multer";
 import { uploadProductImage } from "../../controllers/admin/uploadProductController.js";
 import { getAllOrders, updateOrderStatus } from "../../controllers/admin/adminOrderController.js";
 import { addProduct } from "../../controllers/admin/addProductController.js";
+import { getNotifications, markNotificationsAsRead } from "../../controllers/admin/adminNotificationController.js";
 
 const router = express.Router();
 
@@ -52,4 +53,19 @@ router.post(
   upload.single("image"),
   uploadProductImage
 );
+
+router.get(
+  "/notifications",
+  protect,
+  adminOnly,
+  getNotifications,
+);
+
+router.patch(
+  "/notifications/read",
+  protect,
+  adminOnly,
+  markNotificationsAsRead,
+);
+
 export default router;

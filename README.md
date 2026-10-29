@@ -187,3 +187,13 @@ For supported JavaScript and UI updates without reinstalling an APK, Expo Update
 **Platform:** Android
 **Build Profile:** Preview
 **Output:** APK
+
+Your ApnaShop web app and React Native app use different authentication approaches
+  Web (React): HTTP-only cookie.
+  Native (React Native / Expo): JWT token.
+
+Feature	What Socket.IO will do	Difficulty
+  1. Real-time order notifications	Notify the admin when a customer places an order	Easy
+  2. Order status updates	Notify customers when their order is shipped or delivered	Easy–Medium
+  3. Real-time chat	Allow customers to chat with support or the admin	Medium
+  4. Online status	Show whether a user is online	Medium

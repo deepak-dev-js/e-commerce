@@ -5,6 +5,8 @@ import Order from "../../models/Order.js";
 import razorpay from "../../config/razorpay.js";
 import sendEmail from "../../services/emailService.js";
 import createOrderEmailTemplate from "../../templates/orderEmailTemplate.js";
+import { getIO } from "../../config/socket.js";
+import Notification from "../../models/Notification.js";
 
 // --------------------------------------------------
 // Helpers
@@ -60,12 +62,7 @@ export const createPaymentOrder = async (req, res) => {
     }
 
     // Validate shipping address.
-    const requiredAddressFields = [
-      "fullName",
-      "email",
-      "phone",
-      "addressLine",
-    ];
+    const requiredAddressFields = ["fullName", "email", "phone", "addressLine"];
 
     const validAddress =
       shippingAddress &&
@@ -100,8 +97,7 @@ export const createPaymentOrder = async (req, res) => {
       const variantId = String(item.variantId);
       const key = `${productId}:${variantId}`;
 
-      const quantity =
-        (quantities.get(key)?.quantity ?? 0) + item.quantity;
+      const quantity = (quantities.get(key)?.quantity ?? 0) + item.quantity;
 
       if (quantity > 100) {
         return res.status(400).json({
@@ -118,9 +114,7 @@ export const createPaymentOrder = async (req, res) => {
 
     // Fetch products from MongoDB.
     const productIds = [
-      ...new Set(
-        [...quantities.values()].map((item) => item.productId),
-      ),
+      ...new Set([...quantities.values()].map((item) => item.productId)),
     ];
 
     const products = await Product.find({
@@ -128,10 +122,7 @@ export const createPaymentOrder = async (req, res) => {
     });
 
     const productMap = new Map(
-      products.map((product) => [
-        String(product._id),
-        product,
-      ]),
+      products.map((product) => [String(product._id), product]),
     );
 
     if (products.length !== productIds.length) {
@@ -188,9 +179,7 @@ export const createPaymentOrder = async (req, res) => {
         });
       }
 
-      const attributes = getVariantAttributeObject(
-        variant.attributes,
-      );
+      const attributes = getVariantAttributeObject(variant.attributes);
 
       orderItems.push({
         product: product._id,
@@ -287,36 +276,25 @@ export const createPaymentOrder = async (req, res) => {
       try {
         await Order.deleteOne({ _id: order._id });
       } catch (rollbackError) {
-        console.error(
-          "Failed to remove incomplete order:",
-          rollbackError,
-        );
+        console.error("Failed to remove incomplete order:", rollbackError);
       }
     }
 
     try {
       await restoreReservedStock(reservations);
     } catch (rollbackError) {
-      console.error(
-        "Failed to restore reserved stock:",
-        rollbackError,
-      );
+      console.error("Failed to restore reserved stock:", rollbackError);
 
       return res.status(500).json({
-        message:
-          "Checkout failed and stock restoration needs attention.",
+        message: "Checkout failed and stock restoration needs attention.",
       });
     }
 
-    const status = error.message?.startsWith("Stock changed")
-      ? 409
-      : 500;
+    const status = error.message?.startsWith("Stock changed") ? 409 : 500;
 
     return res.status(status).json({
       message:
-        status === 409
-          ? error.message
-          : "Unable to create payment order.",
+        status === 409 ? error.message : "Unable to create payment order.",
     });
   }
 };
@@ -327,11 +305,8 @@ export const createPaymentOrder = async (req, res) => {
 
 export const verifyPayment = async (req, res) => {
   try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-    } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
 
     if (
       typeof razorpay_order_id !== "string" ||
@@ -360,8 +335,7 @@ export const verifyPayment = async (req, res) => {
     if (order.paymentStatus === "paid") {
       if (order.razorpayPaymentId !== razorpay_payment_id) {
         return res.status(409).json({
-          message:
-            "This order was already paid using another payment.",
+          message: "This order was already paid using another payment.",
         });
       }
 
@@ -397,9 +371,7 @@ export const verifyPayment = async (req, res) => {
     }
 
     // Confirm payment details directly with Razorpay.
-    const payment = await razorpay.payments.fetch(
-      razorpay_payment_id,
-    );
+    const payment = await razorpay.payments.fetch(razorpay_payment_id);
 
     if (
       payment.order_id !== razorpay_order_id ||
@@ -430,6 +402,8 @@ export const verifyPayment = async (req, res) => {
       { new: true },
     );
 
+ 
+
     if (!updatedOrder) {
       const latestOrder = await Order.findById(order._id);
 
@@ -445,10 +419,24 @@ export const verifyPayment = async (req, res) => {
       }
 
       return res.status(409).json({
-        message:
-          "Order status changed. Please refresh and check your order.",
+        message: "Order status changed. Please refresh and check your order.",
       });
     }
+
+       await Notification.create({
+      type: "new_order",
+      message: "New order received",
+      orderId: updatedOrder._id,
+      totalAmount: updatedOrder.totalAmount,
+      isRead: false,
+    });
+
+    // Notify connected admins about the confirmed order.
+    getIO().to("admins").emit("new_order", {
+      message: "New order received",
+      orderId: updatedOrder._id,
+      totalAmount: updatedOrder.totalAmount,
+    });
 
     // Increment product purchase counts only after verification.
     try {
@@ -467,10 +455,7 @@ export const verifyPayment = async (req, res) => {
         await Product.bulkWrite(purchaseUpdates);
       }
     } catch (error) {
-      console.error(
-        "Failed to update product purchase counts:",
-        error,
-      );
+      console.error("Failed to update product purchase counts:", error);
     }
 
     // Send confirmation to the customer's supplied email.
@@ -496,10 +481,7 @@ export const verifyPayment = async (req, res) => {
         html,
       });
     } catch (error) {
-      console.error(
-        "Order confirmation email failed:",
-        error,
-      );
+      console.error("Order confirmation email failed:", error);
     }
 
     return res.status(200).json({
@@ -511,8 +493,7 @@ export const verifyPayment = async (req, res) => {
     console.error("Payment verification failed:", error);
 
     return res.status(500).json({
-      message:
-        "Unable to verify payment. Please check your order status.",
+      message: "Unable to verify payment. Please check your order status.",
     });
   }
 };
