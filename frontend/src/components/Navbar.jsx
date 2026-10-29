@@ -132,7 +132,7 @@ const Navbar = () => {
         </li>
 
         <li>
-          <NavLink to="/contact" className={navLinkClass}>
+          <NavLink to="/admin/chats" className={navLinkClass}>
             Contact
           </NavLink>
         </li>
@@ -283,6 +283,16 @@ const Navbar = () => {
                 className={navLinkClass}
               >
                 Wishlist
+              </NavLink>
+            </li>
+
+              <li>
+              <NavLink
+                to="/support-chat"
+                onClick={() => setIsMenuOpen(false)}
+                className={navLinkClass}
+              >
+                Support Chat
               </NavLink>
             </li>
           </ul>
