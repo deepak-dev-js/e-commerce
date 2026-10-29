@@ -6,6 +6,7 @@ import productRoutes from "./routes/productRoutes.js";
 import customerRoutes from "./routes/customer/customerRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/admin/adminRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js"
 import cookieParser from "cookie-parser";
 import { createServer } from "node:http";
 import { initSocket } from "./config/socket.js";
@@ -37,6 +38,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/chats", chatRoutes);
 
 const PORT = process.env.PORT || 5000;
 

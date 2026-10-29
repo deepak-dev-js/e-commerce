@@ -21,6 +21,8 @@ import ForgotPassword from "../features/auth/pages/ForgotPassword";
 import ResetPassword from "../features/auth/pages/ResetPassword";
 import VerifyEmail from "../features/auth/pages/VerifyEmail";
 import Wishlist from "../pages/Wishlist";
+import CustomerChat from "../features/chat/CustomerChat";
+import AdminChat from "../features/chat/AdminChat";
 
 const AppRoutes = () => {
   return (
@@ -30,7 +32,9 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
-    <Route path="/wishlist" element={<Wishlist />} />
+      <Route path="/wishlist" element={<Wishlist />} />
+      <Route path="/support-chat" element={<CustomerChat />} />
+      <Route path="/admin/chats" element={<AdminChat />} />
       <Route
         path="/"
         element={
